@@ -1,1 +1,60 @@
 package storage
+
+import (
+	"reflect"
+	"testing"
+)
+
+func TestNewMemStorage(t *testing.T) {
+	got := NewMemStorage()
+	want := MemStorage{}
+
+	if reflect.TypeOf(want) != reflect.TypeOf(got) {
+		t.Errorf(`Incorrect structure type for NewMemStorage(), got "%v", want "%v"`, got, want)
+	}
+}
+
+func TestAddGauge(t *testing.T) {
+	memStore := NewMemStorage()
+	want := float64(1)
+	memStore.AddGauge("key", want)
+	got := float64(memStore.gauges["key"])
+
+	if got != want {
+		t.Errorf(`Incorrect 'AddGauge("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
+	}
+}
+
+func TestGetGauge(t *testing.T) {
+	memStore := NewMemStorage()
+	want := float64(1)
+	memStore.gauges["key"] = gauge(want)
+	got := memStore.GetGauge("key")
+
+	if want != float64(got) {
+		t.Errorf(`Incorrect 'GetGauge("key")' method behavior, got "%v", want "%v"`, got, want)
+	}
+}
+
+func TestAddCounter(t *testing.T) {
+	memStore := NewMemStorage()
+	counter := int64(10)
+	want := int64(memStore.counters["key"]) + counter
+	memStore.AddCounter("key", counter)
+	got := int64(memStore.counters["key"])
+
+	if got != want {
+		t.Errorf(`Incorrect 'AddCounter("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
+	}
+}
+
+func TestGetCounter(t *testing.T) {
+	memStore := NewMemStorage()
+	want := int64(1)
+	memStore.counters["key"] = counter(want)
+	got := int64(memStore.GetCounter("key"))
+
+	if want != got {
+		t.Errorf(`Incorrect 'GetCounter("key")' method behavior, got "%v", want "%v"`, got, want)
+	}
+}

@@ -1,3 +1,4 @@
+// Storage for metrics
 package storage
 
 type (
@@ -31,7 +32,7 @@ func (mStore *MemStorage) GetGauge(key string) float64 {
 
 // Change counter by key
 func (mStore *MemStorage) AddCounter(key string, value int64) error {
-	mStore.counters[key] += counter(value)
+	mStore.counters[key] = mStore.counters[key] + counter(value)
 	return nil
 }
 
