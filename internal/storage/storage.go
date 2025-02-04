@@ -20,7 +20,7 @@ func NewMemStorage() MemStorage {
 }
 
 // Change gauge by key
-func (mStore *MemStorage) AddGauge(key string, value float64) error {
+func (mStore *MemStorage) SetGauge(key string, value float64) error {
 	mStore.gauges[key] = gauge(value)
 	return nil
 }
@@ -31,7 +31,7 @@ func (mStore *MemStorage) GetGauge(key string) float64 {
 }
 
 // Change counter by key
-func (mStore *MemStorage) AddCounter(key string, value int64) error {
+func (mStore *MemStorage) SetCounter(key string, value int64) error {
 	mStore.counters[key] += counter(value)
 	return nil
 }

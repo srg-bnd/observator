@@ -14,14 +14,14 @@ func TestNewMemStorage(t *testing.T) {
 	}
 }
 
-func TestAddGauge(t *testing.T) {
+func TestSetGauge(t *testing.T) {
 	memStore := NewMemStorage()
 	want := float64(1)
-	memStore.AddGauge("key", want)
+	memStore.SetGauge("key", want)
 	got := float64(memStore.gauges["key"])
 
 	if got != want {
-		t.Errorf(`Incorrect 'AddGauge("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
+		t.Errorf(`Incorrect 'SetGauge("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
 	}
 }
 
@@ -36,15 +36,15 @@ func TestGetGauge(t *testing.T) {
 	}
 }
 
-func TestAddCounter(t *testing.T) {
+func TestSetCounter(t *testing.T) {
 	memStore := NewMemStorage()
 	counter := int64(10)
 	want := int64(memStore.counters["key"]) + counter
-	memStore.AddCounter("key", counter)
+	memStore.SetCounter("key", counter)
 	got := int64(memStore.counters["key"])
 
 	if got != want {
-		t.Errorf(`Incorrect 'AddCounter("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
+		t.Errorf(`Incorrect 'SetCounter("key", %#v)' method behavior, got "%v", want "%v"`, want, got, want)
 	}
 }
 

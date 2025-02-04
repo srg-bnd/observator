@@ -12,10 +12,10 @@ var memStorage storage.MemStorage
 
 func init() {
 	memStorage = storage.NewMemStorage()
+	server.MemStorage = &memStorage
 }
-
 func main() {
-	if err := server.Start(&memStorage); err != nil {
+	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
 }
