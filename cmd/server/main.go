@@ -4,7 +4,9 @@ package main
 import (
 	"log"
 
+	"github.com/srg-bnd/observator/internal/handlers"
 	"github.com/srg-bnd/observator/internal/server"
+	"github.com/srg-bnd/observator/internal/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -12,8 +14,12 @@ var memStorage storage.MemStorage
 
 func init() {
 	memStorage = storage.NewMemStorage()
+	// HACK to acess memStorage
 	server.MemStorage = &memStorage
+	handlers.MemStorage = &memStorage
+	services.MemStorage = &memStorage
 }
+
 func main() {
 	if err := server.Start(); err != nil {
 		log.Fatal(err)

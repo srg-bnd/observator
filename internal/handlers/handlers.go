@@ -17,8 +17,6 @@ func UpdateMetricHandler(res http.ResponseWriter, req *http.Request) {
 	metricName := req.PathValue("metricName")
 	metricValue := req.PathValue("metricValue")
 
-	// HACK
-	services.MemStorage = MemStorage
 	data := services.UpdateMetricService(metricType, metricName, metricValue)
 
 	if data.Ok {

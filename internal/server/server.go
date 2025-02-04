@@ -18,9 +18,6 @@ var (
 )
 
 func init() {
-	// HACK
-	handlers.MemStorage = MemStorage
-
 	// Routes
 	mux = http.NewServeMux()
 	mux.Handle(
