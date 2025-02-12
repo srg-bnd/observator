@@ -5,5 +5,5 @@ import (
 )
 
 func TestUpdateMetricService(t *testing.T) {
-	// TODO
+	t.Logf("TODO")
 }

@@ -5,7 +5,7 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	// TODO
+	t.Logf("TODO")
 }
 
 func TestGetHost(t *testing.T) {
