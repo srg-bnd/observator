@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/srg-bnd/observator/internal/models"
-	"github.com/srg-bnd/observator/internal/services"
+	"github.com/srg-bnd/observator/internal/server/models"
+	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
