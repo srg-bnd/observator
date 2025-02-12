@@ -1,17 +1,16 @@
 package storage
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewMemStorage(t *testing.T) {
 	got := NewMemStorage()
-	want := MemStorage{}
+	want := &MemStorage{}
 
-	if reflect.TypeOf(want) != reflect.TypeOf(got) {
-		t.Errorf(`Incorrect structure type for NewMemStorage(), got "%v", want "%v"`, got, want)
-	}
+	assert.IsType(t, got, want)
 }
 
 func TestSetGauge(t *testing.T) {

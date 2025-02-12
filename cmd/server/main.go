@@ -5,20 +5,24 @@ import (
 	"log"
 
 	"github.com/srg-bnd/observator/internal/server"
-	"github.com/srg-bnd/observator/internal/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-var memStorage storage.MemStorage
+type App struct {
+	storage *storage.MemStorage
+	server  *server.Server
+}
 
-func init() {
-	memStorage = storage.NewMemStorage()
-	// HACK to acess memStorage
-	services.MemStorage = &memStorage
+func NewApp() *App {
+	storage := storage.NewMemStorage()
+	return &App{
+		storage: storage,
+		server:  server.NewServer(storage),
+	}
 }
 
 func main() {
-	if err := server.Start(); err != nil {
+	if err := NewApp().server.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

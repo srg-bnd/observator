@@ -11,27 +11,30 @@ const (
 	defaultHost = `:8080`
 )
 
-var (
-	mux *http.ServeMux
-)
+type Server struct {
+	handler *handlers.Handler
+}
 
-func init() {
-	// Routes
-	mux = http.NewServeMux()
-	mux.Handle(
-		`/update/{metricType}/{metricName}/{metricValue}`,
-		middleware.Chain(
-			http.HandlerFunc(handlers.UpdateMetricHandler),
-			middleware.CheckMethodPost,
-		))
+func NewServer(storage storage.Repositories) *Server {
+	return &Server{
+		handler: handlers.NewHandler(storage),
+	}
 }
 
 // Init server dependencies before startup
-func Start() error {
+func (server *Server) Start() error {
 	host, err := getHost()
 	if err != nil {
 		return err
 	}
+
+	mux := http.NewServeMux()
+	mux.Handle(
+		`/update/{metricType}/{metricName}/{metricValue}`,
+		middleware.Chain(
+			http.HandlerFunc(server.handler.UpdateMetricHandler),
+			middleware.CheckMethodPost,
+		))
 
 	http.ListenAndServe(host, mux)
 
