@@ -16,16 +16,7 @@ func NewService(storage storage.Repositories) *Service {
 	}
 }
 
-type Result struct {
-	Ok     bool
-	Status string
-}
-
-func NewResult(ok bool, status string) *Result {
-	return &Result{Ok: ok, Status: status}
-}
-
-func (service *Service) UpdateMetricService(metric *models.Metric) *Result {
+func (service *Service) MetricUpdateService(metric *models.Metric) error {
 	switch metric.Type {
 	case "counter":
 		service.storage.SetCounter(metric.Name, metric.GetCounter())
@@ -33,5 +24,5 @@ func (service *Service) UpdateMetricService(metric *models.Metric) *Result {
 		service.storage.SetGauge(metric.Name, metric.GetGauge())
 	}
 
-	return NewResult(true, "Ok")
+	return nil
 }

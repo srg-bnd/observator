@@ -39,7 +39,7 @@ func (r *Poller) Start() {
 			return
 		}
 
-		err = r.services.MetricUpdatingService(metrics)
+		err = r.services.MetricsUpdateService(metrics)
 		if err != nil {
 			log.Println(err)
 			return

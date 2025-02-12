@@ -71,13 +71,13 @@ func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error
 }
 
 func (h *Handler) processMetric(w http.ResponseWriter, metric *models.Metric) {
-	data := h.service.UpdateMetricService(metric)
+	err := h.service.MetricUpdateService(metric)
 
-	if data.Ok {
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
 		w.Header().Set("content-type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 

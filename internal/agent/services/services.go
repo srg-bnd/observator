@@ -17,7 +17,7 @@ func NewService(storage storage.Repositories) *Service {
 	}
 }
 
-func (s *Service) MetricUpdatingService(metrics *collector.Metrics) error {
+func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
 	ShowMetrics(metrics)
 
 	return nil
