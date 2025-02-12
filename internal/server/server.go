@@ -5,7 +5,6 @@ import (
 
 	"github.com/srg-bnd/observator/internal/handlers"
 	"github.com/srg-bnd/observator/internal/middleware"
-	"github.com/srg-bnd/observator/internal/storage"
 )
 
 const (
@@ -13,8 +12,7 @@ const (
 )
 
 var (
-	MemStorage *storage.MemStorage
-	mux        *http.ServeMux
+	mux *http.ServeMux
 )
 
 func init() {

@@ -5,11 +5,6 @@ import (
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/services"
-	"github.com/srg-bnd/observator/internal/storage"
-)
-
-var (
-	MemStorage *storage.MemStorage
 )
 
 func UpdateMetricHandler(res http.ResponseWriter, req *http.Request) {
