@@ -22,7 +22,7 @@ func init() {
 	mux = http.NewServeMux()
 	mux.Handle(
 		`/update/{metricType}/{metricName}/{metricValue}`,
-		middleware.Conveyor(
+		middleware.Chain(
 			http.HandlerFunc(handlers.UpdateMetricHandler),
 			middleware.CheckMethodPost,
 		))
