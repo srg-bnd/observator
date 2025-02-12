@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -14,65 +15,41 @@ const (
 )
 
 type Poller struct {
-	storage storage.Repositories
+	storage   storage.Repositories
+	collector *collector.Collector
 }
 
 func NewPoller(storage storage.Repositories) *Poller {
 	return &Poller{
-		storage: storage,
+		storage:   storage,
+		collector: collector.NewCollector(),
 	}
 }
 
 func (r *Poller) Start() {
 	for {
 		time.Sleep(GetPollInterval())
-		ShowMetrics()
+		log.Println("=== Poller started ===")
+		metricsByType, err := r.collector.GetMetrics()
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		ShowMetrics(metricsByType)
+		log.Println("=== Poller stopped ===")
 	}
 }
 
-func ShowMetrics() {
-	log.Println("=== Poller started ===")
+func ShowMetrics(metricsByType map[string][]string) {
 	fmt.Println("Gauge:")
-	fmt.Println("- Alloc:", 1)
-	fmt.Println("- BuckHashSys:", 1)
-	fmt.Println("- Frees:", 1)
-	fmt.Println("- GCCPUFraction:", 1)
-	fmt.Println("- GCSys:", 1)
 
-	fmt.Println("- HeapAlloc:", 1)
-	fmt.Println("- HeapIdle:", 1)
-	fmt.Println("- HeapInuse:", 1)
-	fmt.Println("- HeapObjects:", 1)
-	fmt.Println("- HeapReleased:", 1)
-	fmt.Println("- HeapSys:", 1)
-
-	fmt.Println("- LastGC:", 1)
-	fmt.Println("- Lookups:", 1)
-	fmt.Println("- MCacheInuse:", 1)
-	fmt.Println("- MCacheSys:", 1)
-	fmt.Println("- MSpanInuse:", 1)
-	fmt.Println("- MSpanSys:", 1)
-
-	fmt.Println("- Mallocs:", 1)
-	fmt.Println("- NextGC:", 1)
-	fmt.Println("- NumForcedGC:", 1)
-	fmt.Println("- NumGC:", 1)
-	fmt.Println("- NumForcedGC:", 1)
-	fmt.Println("- NumGC:", 1)
-
-	fmt.Println("- OtherSys:", 1)
-	fmt.Println("- PauseTotalNs:", 1)
-	fmt.Println("- StackInuse:", 1)
-	fmt.Println("- StackSys:", 1)
-	fmt.Println("- Sys:", 1)
-	fmt.Println("- TotalAlloc:", 1)
-
-	fmt.Println("- RandomValue:", 1) // custom
-
-	fmt.Println("Counter:")
-	fmt.Println("- PollCount:", 1) // custom
-
-	log.Println("=== Poller stopped ===")
+	for typeOfMetric, metrics := range metricsByType {
+		fmt.Println(typeOfMetric, ":")
+		for _, metric := range metrics {
+			fmt.Println("-", metric, ":", 0)
+		}
+	}
 }
 
 func GetPollInterval() time.Duration {

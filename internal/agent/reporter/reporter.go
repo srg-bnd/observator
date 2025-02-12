@@ -28,7 +28,13 @@ func NewReporter(storage storage.Repositories) *Reporter {
 func (r *Reporter) Start() {
 	for {
 		time.Sleep(GetReportInterval())
-		log.Println("Reporter!")
+		log.Println("=== Reporter started ===")
+		err := r.client.SendMetrics()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("=== Reporter stopped ===")
 	}
 }
 
