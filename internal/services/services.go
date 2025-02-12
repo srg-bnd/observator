@@ -2,9 +2,7 @@
 package services
 
 import (
-	"slices"
-	"strconv"
-
+	"github.com/srg-bnd/observator/internal/models"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -18,50 +16,22 @@ func NewService(storage storage.Repositories) *Service {
 	}
 }
 
-type Data struct {
+type Result struct {
 	Ok     bool
 	Status string
 }
 
-func successData(status string) *Data {
-	return &Data{Ok: true, Status: status}
+func NewResult(ok bool, status string) *Result {
+	return &Result{Ok: ok, Status: status}
 }
 
-func errorData(status string) *Data {
-	return &Data{Ok: false, Status: status}
-}
-
-// Services
-
-func (service *Service) UpdateMetricService(metricType, metricName, metricValue string) *Data {
-	// Check type
-	if !slices.Contains([]string{"counter", "gauge"}, metricType) {
-		return errorData("typeError")
-	}
-
-	// Check name
-	if metricName == "" {
-		return errorData("nameError")
-	}
-
-	switch metricType {
+func (service *Service) UpdateMetricService(metric *models.Metric) *Result {
+	switch metric.Type {
 	case "counter":
-		// Check and set value
-		value, err := strconv.ParseInt(metricValue, 10, 64)
-		if err != nil {
-			return errorData("valueError")
-		} else {
-			service.storage.SetCounter(metricName, value)
-		}
+		service.storage.SetCounter(metric.Name, metric.GetCounter())
 	case "gauge":
-		// Check and set value
-		value, err := strconv.ParseFloat(metricValue, 64)
-		if err != nil {
-			return errorData("valueError")
-		} else {
-			service.storage.SetGauge(metricName, value)
-		}
+		service.storage.SetGauge(metric.Name, metric.GetGauge())
 	}
 
-	return successData("Ok")
+	return NewResult(true, "Ok")
 }

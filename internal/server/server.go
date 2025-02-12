@@ -13,12 +13,12 @@ const (
 )
 
 type Server struct {
-	handler *handlers.HTTPHandler
+	handler *handlers.Handler
 }
 
 func NewServer(storage storage.Repositories) *Server {
 	return &Server{
-		handler: handlers.NewHTTPHandler(storage),
+		handler: handlers.NewHandler(storage),
 	}
 }
 

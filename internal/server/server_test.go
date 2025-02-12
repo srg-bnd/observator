@@ -12,8 +12,8 @@ func TestStart(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	deque := NewServer(storage.NewMemStorage())
-	assert.IsType(t, deque, &Server{})
+	server := NewServer(storage.NewMemStorage())
+	assert.IsType(t, server, &Server{})
 }
 
 func TestGetHost(t *testing.T) {
