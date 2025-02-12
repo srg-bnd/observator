@@ -28,18 +28,18 @@ func NewAgent(storage storage.Repositories) *Agent {
 }
 
 func (a *Agent) Start() error {
-	startPoll := time.Now()
-	startReport := time.Now()
+	pollerStarted := time.Now()
+	reporterStarted := time.Now()
 
 	for {
-		if time.Since(startPoll) >= defaultPollInterval*time.Second {
-			go a.poller.Poll()
-			startPoll = time.Now()
+		if time.Since(pollerStarted) >= defaultPollInterval*time.Second {
+			go a.poller.Start()
+			pollerStarted = time.Now()
 		}
 
-		if time.Since(startReport) >= defaultReportInterval*time.Second {
-			go a.reporter.Report()
-			startReport = time.Now()
+		if time.Since(reporterStarted) >= defaultReportInterval*time.Second {
+			go a.reporter.Start()
+			reporterStarted = time.Now()
 		}
 	}
 }

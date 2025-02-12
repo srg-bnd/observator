@@ -9,6 +9,6 @@ func NewPoller() *Poller {
 	return &Poller{}
 }
 
-func (r *Poller) Poll() {
-	log.Println("Poll!")
+func (r *Poller) Start() {
+	log.Println("Poller!")
 }

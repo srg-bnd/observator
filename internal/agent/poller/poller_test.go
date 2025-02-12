@@ -11,6 +11,6 @@ func TestNewPoller(t *testing.T) {
 	assert.IsType(t, poller, &Poller{})
 }
 
-func TestPoll(t *testing.T) {
+func TestStart(t *testing.T) {
 	t.Logf("TODO")
 }

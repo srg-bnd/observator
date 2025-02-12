@@ -9,6 +9,6 @@ func NewReporter() *Reporter {
 	return &Reporter{}
 }
 
-func (r *Reporter) Report() {
-	log.Println("Report!")
+func (r *Reporter) Start() {
+	log.Println("Reporter!")
 }
