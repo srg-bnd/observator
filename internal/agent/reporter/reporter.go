@@ -26,13 +26,9 @@ func NewReporter(storage storage.Repositories) *Reporter {
 }
 
 func (r *Reporter) Start() {
-	reporterStarted := time.Now()
-
 	for {
-		if time.Since(reporterStarted) >= GetReportInterval() {
-			log.Println("Reporter!")
-			reporterStarted = time.Now()
-		}
+		time.Sleep(GetReportInterval())
+		log.Println("Reporter!")
 	}
 }
 
