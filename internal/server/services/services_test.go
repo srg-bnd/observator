@@ -3,7 +3,7 @@ package services
 import (
 	"testing"
 
-	"github.com/srg-bnd/observator/internal/models"
+	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
