@@ -33,12 +33,12 @@ func (a *Agent) Start() error {
 
 	for {
 		if time.Since(startPoll) >= defaultPollInterval*time.Second {
-			a.poller.Poll()
+			go a.poller.Poll()
 			startPoll = time.Now()
 		}
 
 		if time.Since(startReport) >= defaultReportInterval*time.Second {
-			a.reporter.Report()
+			go a.reporter.Report()
 			startReport = time.Now()
 		}
 	}
