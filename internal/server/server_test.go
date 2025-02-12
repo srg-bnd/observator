@@ -2,10 +2,17 @@ package server
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStart(t *testing.T) {
-	// TODO
+	t.Logf("TODO")
+}
+
+func TestNewServer(t *testing.T) {
+	deque := NewServer()
+	assert.IsType(t, deque, &Server{})
 }
 
 func TestGetHost(t *testing.T) {

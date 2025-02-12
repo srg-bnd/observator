@@ -8,6 +8,16 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+type Service struct {
+	storage storage.Repositories
+}
+
+func NewService(storage storage.Repositories) *Service {
+	return &Service{
+		storage: storage,
+	}
+}
+
 type Data struct {
 	Ok     bool
 	Status string
@@ -21,13 +31,9 @@ func errorData(status string) *Data {
 	return &Data{Ok: false, Status: status}
 }
 
-var (
-	MemStorage *storage.MemStorage
-)
-
 // Services
 
-func UpdateMetricService(metricType, metricName, metricValue string) *Data {
+func (service *Service) UpdateMetricService(metricType, metricName, metricValue string) *Data {
 	// Check type
 	if !slices.Contains([]string{"counter", "gauge"}, metricType) {
 		return errorData("typeError")
@@ -45,7 +51,7 @@ func UpdateMetricService(metricType, metricName, metricValue string) *Data {
 		if err != nil {
 			return errorData("valueError")
 		} else {
-			MemStorage.SetCounter(metricName, value)
+			service.storage.SetCounter(metricName, value)
 		}
 	case "gauge":
 		// Check and set value
@@ -53,7 +59,7 @@ func UpdateMetricService(metricType, metricName, metricValue string) *Data {
 		if err != nil {
 			return errorData("valueError")
 		} else {
-			MemStorage.SetGauge(metricName, value)
+			service.storage.SetGauge(metricName, value)
 		}
 	}
 

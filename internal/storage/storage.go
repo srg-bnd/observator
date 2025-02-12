@@ -6,14 +6,21 @@ type (
 	counter int64
 )
 
+type Repositories interface {
+	SetGauge(string, float64) error
+	GetGauge(string) float64
+	SetCounter(string, int64) error
+	GetCounter(string) int64
+}
+
 type MemStorage struct {
 	gauges   map[string]gauge
 	counters map[string]counter
 }
 
 // Create MemStorage instance
-func NewMemStorage() MemStorage {
-	return MemStorage{
+func NewMemStorage() *MemStorage {
+	return &MemStorage{
 		gauges:   make(map[string]gauge),
 		counters: make(map[string]counter),
 	}
