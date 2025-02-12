@@ -3,8 +3,8 @@ package server
 import (
 	"net/http"
 
-	"github.com/srg-bnd/observator/internal/handlers"
-	"github.com/srg-bnd/observator/internal/middleware"
+	"github.com/srg-bnd/observator/internal/server/handlers"
+	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
