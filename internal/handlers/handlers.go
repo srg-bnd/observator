@@ -52,14 +52,14 @@ func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error
 	// Check value
 	switch metric.Type {
 	case "counter":
-		value, err := strconv.ParseInt(r.PathValue("Value"), 10, 64)
+		value, err := strconv.ParseInt(r.PathValue("metricValue"), 10, 64)
 		if err != nil {
 			return nil, errors.New("valueError")
 		}
 
 		metric.SetCounter(value)
 	case "gauge":
-		value, err := strconv.ParseFloat(r.PathValue("Value"), 64)
+		value, err := strconv.ParseFloat(r.PathValue("metricValue"), 64)
 		if err != nil {
 			return nil, errors.New("valueError")
 		}
