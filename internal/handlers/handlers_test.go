@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewHttpHandler(t *testing.T) {
+func TestNewHTTPHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
-	deque := NewHttpHandler(storage)
-	assert.IsType(t, deque, &HttpHandler{})
+	deque := NewHTTPHandler(storage)
+	assert.IsType(t, deque, &HTTPHandler{})
 }
 
 func TestUpdateMetricHandler(t *testing.T) {

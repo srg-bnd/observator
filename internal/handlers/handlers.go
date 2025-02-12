@@ -8,22 +8,22 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-type HttpHandler struct {
+type HTTPHandler struct {
 	service *services.Service
 }
 
-func NewHttpHandler(storage storage.Repositories) *HttpHandler {
-	return &HttpHandler{
+func NewHTTPHandler(storage storage.Repositories) *HTTPHandler {
+	return &HTTPHandler{
 		service: services.NewService(storage),
 	}
 }
 
-func (httpHandler *HttpHandler) UpdateMetricHandler(res http.ResponseWriter, req *http.Request) {
+func (HTTPHandler *HTTPHandler) UpdateMetricHandler(res http.ResponseWriter, req *http.Request) {
 	metricType := req.PathValue("metricType")
 	metricName := req.PathValue("metricName")
 	metricValue := req.PathValue("metricValue")
 
-	data := httpHandler.service.UpdateMetricService(metricType, metricName, metricValue)
+	data := HTTPHandler.service.UpdateMetricService(metricType, metricName, metricValue)
 
 	if data.Ok {
 		res.Header().Set("content-type", "text/plain; charset=utf-8")
