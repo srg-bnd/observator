@@ -8,16 +8,19 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-var memStorage storage.MemStorage
+type App struct {
+	agent *agent.Agent
+}
 
-func init() {
-	memStorage = storage.NewMemStorage()
-	// HACK to acess memStorage
-	agent.MemStorage = &memStorage
+func NewApp() *App {
+	storage := storage.NewMemStorage()
+	return &App{
+		agent: agent.NewAgent(storage),
+	}
 }
 
 func main() {
-	if err := agent.Start(); err != nil {
+	if err := NewApp().agent.Start(); err != nil {
 		log.Fatal(err)
 	}
 }
