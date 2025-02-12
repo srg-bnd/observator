@@ -1,6 +1,13 @@
 package reporter
 
-import "log"
+import (
+	"log"
+	"time"
+)
+
+const (
+	defaultReportInterval = 10 * time.Second
+)
 
 type Reporter struct {
 }
@@ -10,5 +17,16 @@ func NewReporter() *Reporter {
 }
 
 func (r *Reporter) Start() {
-	log.Println("Reporter!")
+	reporterStarted := time.Now()
+
+	for {
+		if time.Since(reporterStarted) >= GetReportInterval() {
+			log.Println("Reporter!")
+			reporterStarted = time.Now()
+		}
+	}
+}
+
+func GetReportInterval() time.Duration {
+	return defaultReportInterval
 }

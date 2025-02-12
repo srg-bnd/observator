@@ -1,16 +1,9 @@
 package agent
 
 import (
-	"time"
-
 	"github.com/srg-bnd/observator/internal/agent/poller"
 	"github.com/srg-bnd/observator/internal/agent/reporter"
 	"github.com/srg-bnd/observator/internal/storage"
-)
-
-const (
-	defaultPollInterval   = 2 * time.Second
-	defaultReportInterval = 10 * time.Second
 )
 
 type Agent struct {
@@ -28,26 +21,8 @@ func NewAgent(storage storage.Repositories) *Agent {
 }
 
 func (a *Agent) Start() error {
-	pollerStarted := time.Now()
-	reporterStarted := time.Now()
+	go a.poller.Start()
+	a.reporter.Start()
 
-	for {
-		if time.Since(pollerStarted) >= GetPollInterval() {
-			go a.poller.Start()
-			pollerStarted = time.Now()
-		}
-
-		if time.Since(reporterStarted) >= GetReportInterval() {
-			go a.reporter.Start()
-			reporterStarted = time.Now()
-		}
-	}
-}
-
-func GetPollInterval() time.Duration {
-	return defaultPollInterval
-}
-
-func GetReportInterval() time.Duration {
-	return defaultReportInterval
+	return nil
 }
