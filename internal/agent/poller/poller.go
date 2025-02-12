@@ -1,3 +1,4 @@
+// Collects metrics
 package poller
 
 import (
