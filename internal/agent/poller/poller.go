@@ -2,11 +2,11 @@
 package poller
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
+	"github.com/srg-bnd/observator/internal/agent/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -17,12 +17,14 @@ const (
 type Poller struct {
 	storage   storage.Repositories
 	collector *collector.Collector
+	services  *services.Service
 }
 
 func NewPoller(storage storage.Repositories) *Poller {
 	return &Poller{
 		storage:   storage,
 		collector: collector.NewCollector(),
+		services:  services.NewService(storage),
 	}
 }
 
@@ -30,26 +32,20 @@ func (r *Poller) Start() {
 	for {
 		time.Sleep(GetPollInterval())
 		log.Println("=== Poller started ===")
-		metrics, err := r.collector.GetMetrics()
 
+		metrics, err := r.collector.GetMetrics()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		ShowMetrics(metrics)
+
+		err = r.services.MetricUpdatingService(metrics)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
 		log.Println("=== Poller stopped ===")
-	}
-}
-
-func ShowMetrics(metrics *collector.Metrics) {
-	fmt.Println("Counter:")
-	for _, counterMetric := range *metrics.Counter {
-		fmt.Println("-", counterMetric.Name, ":", counterMetric.Value)
-	}
-
-	fmt.Println("Gauge:")
-	for _, gaugeMetric := range *metrics.Gauge {
-		fmt.Println("-", gaugeMetric.Name, ":", gaugeMetric.Value)
 	}
 }
 
