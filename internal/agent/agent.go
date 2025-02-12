@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	defaultPollInterval   = 2
-	defaultReportInterval = 10
+	defaultPollInterval   = 2 * time.Second
+	defaultReportInterval = 10 * time.Second
 )
 
 type Agent struct {
@@ -32,14 +32,22 @@ func (a *Agent) Start() error {
 	reporterStarted := time.Now()
 
 	for {
-		if time.Since(pollerStarted) >= defaultPollInterval*time.Second {
+		if time.Since(pollerStarted) >= GetPollInterval() {
 			go a.poller.Start()
 			pollerStarted = time.Now()
 		}
 
-		if time.Since(reporterStarted) >= defaultReportInterval*time.Second {
+		if time.Since(reporterStarted) >= GetReportInterval() {
 			go a.reporter.Start()
 			reporterStarted = time.Now()
 		}
 	}
+}
+
+func GetPollInterval() time.Duration {
+	return defaultPollInterval
+}
+
+func GetReportInterval() time.Duration {
+	return defaultReportInterval
 }
