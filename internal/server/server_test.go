@@ -3,6 +3,7 @@ package server
 import (
 	"testing"
 
+	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,7 +12,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	deque := NewServer()
+	deque := NewServer(storage.NewMemStorage())
 	assert.IsType(t, deque, &Server{})
 }
 
