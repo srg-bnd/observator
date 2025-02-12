@@ -3,6 +3,8 @@ package reporter
 import (
 	"log"
 	"time"
+
+	"github.com/srg-bnd/observator/internal/storage"
 )
 
 const (
@@ -10,10 +12,13 @@ const (
 )
 
 type Reporter struct {
+	storage storage.Repositories
 }
 
-func NewReporter() *Reporter {
-	return &Reporter{}
+func NewReporter(storage storage.Repositories) *Reporter {
+	return &Reporter{
+		storage: storage,
+	}
 }
 
 func (r *Reporter) Start() {

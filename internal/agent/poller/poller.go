@@ -3,6 +3,8 @@ package poller
 import (
 	"log"
 	"time"
+
+	"github.com/srg-bnd/observator/internal/storage"
 )
 
 const (
@@ -10,10 +12,13 @@ const (
 )
 
 type Poller struct {
+	storage storage.Repositories
 }
 
-func NewPoller() *Poller {
-	return &Poller{}
+func NewPoller(storage storage.Repositories) *Poller {
+	return &Poller{
+		storage: storage,
+	}
 }
 
 func (r *Poller) Start() {

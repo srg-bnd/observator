@@ -7,16 +7,14 @@ import (
 )
 
 type Agent struct {
-	storage  storage.Repositories
 	poller   *poller.Poller
 	reporter *reporter.Reporter
 }
 
 func NewAgent(storage storage.Repositories) *Agent {
 	return &Agent{
-		storage:  storage,
-		poller:   poller.NewPoller(),
-		reporter: reporter.NewReporter(),
+		poller:   poller.NewPoller(storage),
+		reporter: reporter.NewReporter(storage),
 	}
 }
 
