@@ -71,7 +71,7 @@ func TestHeapAllocGaugeMetric(t *testing.T) {
 	t.Logf("TODO")
 }
 
-func TestheapIdleGaugeMetric(t *testing.T) {
+func TestHeapIdleGaugeMetric(t *testing.T) {
 	t.Logf("TODO")
 }
 
