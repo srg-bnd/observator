@@ -97,18 +97,31 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.PathValue("metricType") {
 	case "counter":
-		h.storage.GetCounter(r.PathValue("metricName"))
+		value, err := h.storage.GetCounter(r.PathValue("metricName"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.FormatInt(value, 10)))
 	case "gauge":
-		h.storage.GetGauge(r.PathValue("metricName"))
+		value, err := h.storage.GetGauge(r.PathValue("metricName"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.FormatFloat(value, 'f', -1, 64)))
 	default:
 		{
 			w.WriteHeader(http.StatusNotFound)
 
 		}
 	}
-
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
 }
 
 /* IndexHandler */
