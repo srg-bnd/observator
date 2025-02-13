@@ -9,6 +9,10 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+const (
+	baseURL = "http://localhost:8080"
+)
+
 type Client struct {
 	storage storage.Repositories
 }
@@ -36,11 +40,15 @@ func (c *Client) SendMetrics(trackedMetrics *collector.TrackedMetrics) error {
 }
 
 func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
-	url := "http://localhost:8080/update/" + metricType + "/" + metricName + "/" + string(metricValue)
+	url := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue)
 	response, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Println(err)
 	}
 
 	response.Body.Close()
+}
+
+func getBaseURL() string {
+	return baseURL
 }
