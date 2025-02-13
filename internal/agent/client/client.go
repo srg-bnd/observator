@@ -37,8 +37,10 @@ func (c *Client) SendMetrics(trackedMetrics *collector.TrackedMetrics) error {
 
 func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
 	url := "http://localhost:8080/update/" + metricType + "/" + metricName + "/" + string(metricValue)
-	_, err := http.Post(url, "text/plain", nil)
+	response, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Println(err)
 	}
+
+	response.Body.Close()
 }
