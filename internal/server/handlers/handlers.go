@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
@@ -127,4 +128,62 @@ func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
 /* IndexHandler */
 
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
+	body := ""
+	trackedMetrics := trackedMetrics()
+
+	for _, metric := range trackedMetrics.Counter {
+		value, _ := h.storage.GetCounter(metric)
+		body += metric + ": "
+		body += strconv.FormatInt(value, 10)
+		body += "\n"
+	}
+
+	for _, metric := range trackedMetrics.Gauge {
+		body += metric + ": "
+		value, _ := h.storage.GetGauge(metric)
+		body += strconv.FormatFloat(value, 'f', -1, 64)
+		body += "\n"
+	}
+
+	w.Header().Set("content-type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(body))
+}
+
+func trackedMetrics() *collector.TrackedMetrics {
+	return collector.NewTrackedMetrics(
+		[]string{
+			"PollCount",
+		},
+		[]string{
+			"Alloc",
+			"BuckHashSys",
+			"Frees",
+			"GCCPUFraction",
+			"GCSys",
+			"HeapAlloc",
+			"HeapIdle",
+			"HeapInuse",
+			"HeapObjects",
+			"HeapReleased",
+			"HeapSys",
+			"LastGC",
+			"Lookups",
+			"MCacheInuse",
+			"MCacheSys",
+			"MSpanInuse",
+			"MSpanSys",
+			"Mallocs",
+			"NextGC",
+			"NumForcedGC",
+			"NumGC",
+			"OtherSys",
+			"PauseTotalNs",
+			"StackInuse",
+			"StackSys",
+			"Sys",
+			"TotalAlloc",
+			"RandomValue",
+		},
+	)
 }
