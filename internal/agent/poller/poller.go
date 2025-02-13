@@ -23,7 +23,7 @@ type Poller struct {
 func NewPoller(storage storage.Repositories) *Poller {
 	return &Poller{
 		storage:   storage,
-		collector: collector.NewCollector(),
+		collector: collector.NewCollector(trackedMetrics()),
 		services:  services.NewService(storage),
 	}
 }
@@ -51,4 +51,42 @@ func (r *Poller) Start() {
 
 func GetPollInterval() time.Duration {
 	return defaultPollInterval
+}
+
+func trackedMetrics() *collector.TrackedMetrics {
+	return collector.NewTrackedMetrics(
+		[]string{
+			"PollCount",
+		},
+		[]string{
+			"Alloc",
+			"BuckHashSys",
+			"Frees",
+			"GCCPUFraction",
+			"GCSys",
+			"HeapAlloc",
+			"HeapIdle",
+			"HeapInuse",
+			"HeapObjects",
+			"HeapReleased",
+			"HeapSys",
+			"LastGC",
+			"Lookups",
+			"MCacheInuse",
+			"MCacheSys",
+			"MSpanInuse",
+			"MSpanSys",
+			"Mallocs",
+			"NextGC",
+			"NumForcedGC",
+			"NumGC",
+			"OtherSys",
+			"PauseTotalNs",
+			"StackInuse",
+			"StackSys",
+			"Sys",
+			"TotalAlloc",
+			"RandomValue",
+		},
+	)
 }

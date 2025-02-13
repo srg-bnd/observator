@@ -24,3 +24,49 @@ func TestConsts(t *testing.T) {
 func TestGetPollInterval(t *testing.T) {
 	assert.Equal(t, GetPollInterval(), 2*time.Second)
 }
+
+func TestTrackedMetrics(t *testing.T) {
+	trackedMetrics := trackedMetrics()
+
+	for _, trackedMetric := range trackedMetrics.Counter {
+		assert.Contains(t, []string{"PollCount"}, trackedMetric)
+	}
+
+	for _, trackedMetric := range trackedMetrics.Gauge {
+		t.Run(trackedMetric, func(t *testing.T) {
+			assert.Contains(
+				t,
+				[]string{
+					"Alloc",
+					"BuckHashSys",
+					"Frees",
+					"GCCPUFraction",
+					"GCSys",
+					"HeapAlloc",
+					"HeapIdle",
+					"HeapInuse",
+					"HeapObjects",
+					"HeapReleased",
+					"HeapSys",
+					"LastGC",
+					"Lookups",
+					"MCacheInuse",
+					"MCacheSys",
+					"MSpanInuse",
+					"MSpanSys",
+					"Mallocs",
+					"NextGC",
+					"NumForcedGC",
+					"NumGC",
+					"OtherSys",
+					"PauseTotalNs",
+					"StackInuse",
+					"StackSys",
+					"Sys",
+					"TotalAlloc",
+					"RandomValue",
+				},
+				trackedMetric)
+		})
+	}
+}

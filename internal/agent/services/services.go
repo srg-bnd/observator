@@ -25,12 +25,12 @@ func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
 
 func ShowMetrics(metrics *collector.Metrics) {
 	fmt.Println("Counter:")
-	for _, counterMetric := range *metrics.Counter {
+	for _, counterMetric := range metrics.Counter {
 		fmt.Println("-", counterMetric.Name, ":", counterMetric.Value)
 	}
 
 	fmt.Println("Gauge:")
-	for _, gaugeMetric := range *metrics.Gauge {
+	for _, gaugeMetric := range metrics.Gauge {
 		fmt.Println("-", gaugeMetric.Name, ":", gaugeMetric.Value)
 	}
 }

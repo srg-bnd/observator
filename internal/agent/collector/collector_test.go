@@ -7,8 +7,14 @@ import (
 )
 
 func TestNewCollector(t *testing.T) {
-	collector := NewCollector()
+	trackedMetrics := NewTrackedMetrics([]string{}, []string{})
+	collector := NewCollector(trackedMetrics)
 	assert.IsType(t, collector, &Collector{})
+}
+
+func TestNewTrackedMetrics(t *testing.T) {
+	trackedMetrics := NewTrackedMetrics([]string{}, []string{})
+	assert.IsType(t, trackedMetrics, &TrackedMetrics{})
 }
 
 func TestNewCounterMetric(t *testing.T) {
@@ -23,8 +29,8 @@ func TestNewGaugeMetric(t *testing.T) {
 
 func TestNewMetrics(t *testing.T) {
 	metrics := NewMetrics(
-		&[]CounterMetric{*NewCounterMetric("metric", 1)},
-		&[]GaugeMetric{*NewGaugeMetric("metric", 1.0)},
+		[]CounterMetric{*NewCounterMetric("metric", 1)},
+		[]GaugeMetric{*NewGaugeMetric("metric", 1.0)},
 	)
 	assert.IsType(t, metrics, &Metrics{})
 }
