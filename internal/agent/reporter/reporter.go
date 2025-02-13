@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/client"
+	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -21,7 +22,7 @@ type Reporter struct {
 func NewReporter(storage storage.Repositories) *Reporter {
 	return &Reporter{
 		storage: storage,
-		client:  client.NewClient(),
+		client:  client.NewClient(storage),
 	}
 }
 
@@ -29,7 +30,7 @@ func (r *Reporter) Start() {
 	for {
 		time.Sleep(GetReportInterval())
 		log.Println("=> Reporter [started]")
-		err := r.client.SendMetrics()
+		err := r.client.SendMetrics(trackedMetrics())
 		if err != nil {
 			log.Println(err)
 			return
@@ -40,4 +41,42 @@ func (r *Reporter) Start() {
 
 func GetReportInterval() time.Duration {
 	return defaultReportInterval
+}
+
+func trackedMetrics() *collector.TrackedMetrics {
+	return collector.NewTrackedMetrics(
+		[]string{
+			"PollCount",
+		},
+		[]string{
+			"Alloc",
+			"BuckHashSys",
+			"Frees",
+			"GCCPUFraction",
+			"GCSys",
+			"HeapAlloc",
+			"HeapIdle",
+			"HeapInuse",
+			"HeapObjects",
+			"HeapReleased",
+			"HeapSys",
+			"LastGC",
+			"Lookups",
+			"MCacheInuse",
+			"MCacheSys",
+			"MSpanInuse",
+			"MSpanSys",
+			"Mallocs",
+			"NextGC",
+			"NumForcedGC",
+			"NumGC",
+			"OtherSys",
+			"PauseTotalNs",
+			"StackInuse",
+			"StackSys",
+			"Sys",
+			"TotalAlloc",
+			"RandomValue",
+		},
+	)
 }
