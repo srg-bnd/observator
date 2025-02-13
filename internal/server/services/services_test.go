@@ -24,7 +24,8 @@ func TestMetricUpdateServiceForCounter(t *testing.T) {
 
 	err := service.MetricUpdateService(metric)
 	assert.Nil(t, err)
-	assert.Equal(t, storage.GetCounter(metric.Name), metric.GetCounter())
+	value, _ := storage.GetCounter(metric.Name)
+	assert.Equal(t, value, metric.GetCounter())
 }
 
 func TestMetricUpdateServiceForGauge(t *testing.T) {
@@ -37,5 +38,6 @@ func TestMetricUpdateServiceForGauge(t *testing.T) {
 
 	err := service.MetricUpdateService(metric)
 	assert.Nil(t, err)
-	assert.Equal(t, storage.GetGauge(metric.Name), metric.GetGauge())
+	value, _ := storage.GetGauge(metric.Name)
+	assert.Equal(t, value, metric.GetGauge())
 }

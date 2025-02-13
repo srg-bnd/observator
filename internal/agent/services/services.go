@@ -34,13 +34,21 @@ func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
 
 func (s *Service) ValueSendingService(trackedMetrics *collector.TrackedMetrics) error {
 	for _, metricName := range trackedMetrics.Counter {
-		metricValue := strconv.FormatInt(s.storage.GetCounter(metricName), 10)
+		value, err := s.storage.GetCounter(metricName)
+		if err != nil {
+			return err
+		}
+		metricValue := strconv.FormatInt(value, 10)
 
 		s.client.SendMetric("counter", metricName, metricValue)
 	}
 
 	for _, metricName := range trackedMetrics.Gauge {
-		metricValue := strconv.FormatFloat(s.storage.GetGauge(metricName), 'f', -1, 64)
+		value, err := s.storage.GetGauge(metricName)
+		metricValue := strconv.FormatFloat(value, 'f', -1, 64)
+		if err != nil {
+			return err
+		}
 
 		s.client.SendMetric("gauge", metricName, metricValue)
 	}

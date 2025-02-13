@@ -14,11 +14,13 @@ import (
 
 type Handler struct {
 	service *services.Service
+	storage storage.Repositories
 }
 
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
 		service: services.NewService(storage),
+		storage: storage,
 	}
 }
 
@@ -93,6 +95,20 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 /* ShowMetricHandler */
 
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.PathValue("metricType") {
+	case "counter":
+		h.storage.GetCounter(r.PathValue("metricName"))
+	case "gauge":
+		h.storage.GetGauge(r.PathValue("metricName"))
+	default:
+		{
+			w.WriteHeader(http.StatusNotFound)
+
+		}
+	}
+
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
 }
 
 /* IndexHandler */
