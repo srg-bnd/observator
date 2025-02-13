@@ -28,3 +28,11 @@ func TestProcessMetric(t *testing.T) {
 func TestHandleError(t *testing.T) {
 	t.Logf("TODO")
 }
+
+func TestShowMetricHandler(t *testing.T) {
+	t.Logf("TODO")
+}
+
+func TestIndexHandler(t *testing.T) {
+	t.Logf("TODO")
+}

@@ -89,3 +89,13 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
+
+/* ShowMetricHandler */
+
+func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+/* IndexHandler */
+
+func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
+}
