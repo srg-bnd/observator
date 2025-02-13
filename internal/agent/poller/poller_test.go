@@ -18,7 +18,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestConsts(t *testing.T) {
-	assert.Equal(t, defaultPollInterval, 2)
+	assert.Equal(t, defaultPollInterval, 2*time.Second)
 }
 
 func TestGetPollInterval(t *testing.T) {

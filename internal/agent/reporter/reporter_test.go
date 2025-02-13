@@ -18,7 +18,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestConsts(t *testing.T) {
-	assert.Equal(t, defaultReportInterval, 10)
+	assert.Equal(t, defaultReportInterval, 10*time.Second)
 }
 
 func TestGetReportInterval(t *testing.T) {
