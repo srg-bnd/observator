@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
 )
@@ -18,19 +16,13 @@ func NewService(storage storage.Repositories) *Service {
 }
 
 func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
-	ShowMetrics(metrics)
+	for _, metric := range metrics.Counter {
+		s.storage.SetCounter(metric.Name, metric.Value)
+	}
+
+	for _, metric := range metrics.Gauge {
+		s.storage.SetGauge(metric.Name, metric.Value)
+	}
 
 	return nil
-}
-
-func ShowMetrics(metrics *collector.Metrics) {
-	fmt.Println("Counter:")
-	for _, counterMetric := range metrics.Counter {
-		fmt.Println("-", counterMetric.Name, ":", counterMetric.Value)
-	}
-
-	fmt.Println("Gauge:")
-	for _, gaugeMetric := range metrics.Gauge {
-		fmt.Println("-", gaugeMetric.Name, ":", gaugeMetric.Value)
-	}
 }
