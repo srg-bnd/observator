@@ -31,7 +31,7 @@ func NewPoller(storage storage.Repositories) *Poller {
 func (r *Poller) Start() {
 	for {
 		time.Sleep(GetPollInterval())
-		log.Println("=== Poller started ===")
+		log.Println("=> Poller [started]")
 
 		metrics, err := r.collector.GetMetrics()
 		if err != nil {
@@ -45,7 +45,7 @@ func (r *Poller) Start() {
 			return
 		}
 
-		log.Println("=== Poller stopped ===")
+		log.Println("=> Poller [stopped]")
 	}
 }
 
