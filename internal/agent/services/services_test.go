@@ -16,3 +16,7 @@ func TestNewService(t *testing.T) {
 func TestMetricsUpdateService(t *testing.T) {
 	t.Logf("TODO")
 }
+
+func TestValueSendingService(t *testing.T) {
+	t.Logf("TODO")
+}
