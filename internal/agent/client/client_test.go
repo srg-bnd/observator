@@ -16,9 +16,9 @@ func TestSendMetric(t *testing.T) {
 }
 
 func TestGetBaseURL(t *testing.T) {
-	assert.Equal(t, getBaseURL(), "http://localhost:8080")
+	assert.Equal(t, getBaseURL(), ":8080")
 }
 
 func TestConsts(t *testing.T) {
-	assert.Equal(t, baseURL, "http://localhost:8080")
+	assert.Equal(t, baseURL, ":8080")
 }

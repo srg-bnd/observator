@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	baseURL = "http://localhost:8080"
+	baseURL = ":8080"
 )
 
 type Client struct {
