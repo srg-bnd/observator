@@ -22,9 +22,9 @@ func (c *Client) SendMetric(metricType string, metricName string, metricValue st
 	response, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Println(err)
+	} else {
+		response.Body.Close()
 	}
-
-	response.Body.Close()
 }
 
 func getBaseURL() string {

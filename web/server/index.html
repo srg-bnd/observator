@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta title="Metrics">
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <ul>
+      {{range .Metrics}}
+      <li>{{.Name}}: {{.Value}}</li>
+      {{end}}
+    </ul>
+  </body>
+</html>
