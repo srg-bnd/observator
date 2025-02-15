@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/srg-bnd/observator/internal/agent/models"
+	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/agent/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
@@ -30,7 +30,7 @@ func (r *Reporter) Start() {
 	for {
 		time.Sleep(GetReportInterval())
 		log.Println("=> Reporter [started]")
-		err := r.service.ValueSendingService(models.TrackedMetrics)
+		err := r.service.ValueSendingService(collector.TrackedMetrics)
 		if err != nil {
 			log.Println(err)
 			return
