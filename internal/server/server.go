@@ -42,14 +42,14 @@ func (server *Server) Start() error {
 func (server *Server) GetMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle(
-		`/update/{metricType}/{metricName}/{metricValue}`,
+		`/update/{metricType}/{metricName}/{metricValue}/`,
 		middleware.Chain(
 			http.HandlerFunc(server.handler.UpdateMetricHandler),
 			middleware.CheckMethodPost,
 		))
 
 	mux.Handle(
-		`/value/{metricType}/{metricName}`,
+		`/value/{metricType}/{metricName}/`,
 		middleware.Chain(
 			http.HandlerFunc(server.handler.ShowMetricHandler),
 		))
