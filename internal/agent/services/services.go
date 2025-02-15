@@ -1,3 +1,4 @@
+// Services
 package services
 
 import (
@@ -21,19 +22,19 @@ func NewService(storage storage.Repositories) *Service {
 }
 
 func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
-	for _, metric := range metrics.Counter {
-		s.storage.SetCounter(metric.Name, metric.Value)
+	for metricName, metricValue := range metrics.Counter {
+		s.storage.SetCounter(metricName, metricValue)
 	}
 
-	for _, metric := range metrics.Gauge {
-		s.storage.SetGauge(metric.Name, metric.Value)
+	for metricName, metricValue := range metrics.Gauge {
+		s.storage.SetGauge(metricName, metricValue)
 	}
 
 	return nil
 }
 
-func (s *Service) ValueSendingService(trackedMetrics *collector.TrackedMetrics) error {
-	for _, metricName := range trackedMetrics.Counter {
+func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error {
+	for _, metricName := range trackedMetrics["counter"] {
 		value, err := s.storage.GetCounter(metricName)
 		if err != nil {
 			return err
@@ -43,7 +44,7 @@ func (s *Service) ValueSendingService(trackedMetrics *collector.TrackedMetrics) 
 		s.client.SendMetric("counter", metricName, metricValue)
 	}
 
-	for _, metricName := range trackedMetrics.Gauge {
+	for _, metricName := range trackedMetrics["gauge"] {
 		value, err := s.storage.GetGauge(metricName)
 		metricValue := strconv.FormatFloat(value, 'f', -1, 64)
 		if err != nil {

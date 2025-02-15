@@ -1,3 +1,4 @@
+// Models for server
 package models
 
 type Metric struct {
