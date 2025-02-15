@@ -38,3 +38,41 @@ func TestGetGauge(t *testing.T) {
 
 	assert.Equal(t, metric.GetGauge(), float64(1))
 }
+
+func TestVars(t *testing.T) {
+	assert.Equal(t, TrackedMetrics, map[string][]string{
+		"counter": {
+			"PollCount",
+		},
+		"gauge": {
+			"Alloc",
+			"BuckHashSys",
+			"Frees",
+			"GCCPUFraction",
+			"GCSys",
+			"HeapAlloc",
+			"HeapIdle",
+			"HeapInuse",
+			"HeapObjects",
+			"HeapReleased",
+			"HeapSys",
+			"LastGC",
+			"Lookups",
+			"MCacheInuse",
+			"MCacheSys",
+			"MSpanInuse",
+			"MSpanSys",
+			"Mallocs",
+			"NextGC",
+			"NumForcedGC",
+			"NumGC",
+			"OtherSys",
+			"PauseTotalNs",
+			"StackInuse",
+			"StackSys",
+			"Sys",
+			"TotalAlloc",
+			"RandomValue",
+		},
+	})
+}

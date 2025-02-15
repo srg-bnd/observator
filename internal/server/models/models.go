@@ -1,7 +1,5 @@
 package models
 
-/* Metric */
-
 type Metric struct {
 	Type         string
 	Name         string
@@ -11,6 +9,42 @@ type Metric struct {
 
 func NewMetric() *Metric {
 	return &Metric{}
+}
+
+var TrackedMetrics = map[string][]string{
+	"counter": {
+		"PollCount",
+	},
+	"gauge": {
+		"Alloc",
+		"BuckHashSys",
+		"Frees",
+		"GCCPUFraction",
+		"GCSys",
+		"HeapAlloc",
+		"HeapIdle",
+		"HeapInuse",
+		"HeapObjects",
+		"HeapReleased",
+		"HeapSys",
+		"LastGC",
+		"Lookups",
+		"MCacheInuse",
+		"MCacheSys",
+		"MSpanInuse",
+		"MSpanSys",
+		"Mallocs",
+		"NextGC",
+		"NumForcedGC",
+		"NumGC",
+		"OtherSys",
+		"PauseTotalNs",
+		"StackInuse",
+		"StackSys",
+		"Sys",
+		"TotalAlloc",
+		"RandomValue",
+	},
 }
 
 func (m *Metric) SetCounter(value int64) {
