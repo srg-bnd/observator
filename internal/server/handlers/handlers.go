@@ -4,6 +4,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"text/template"
 
@@ -63,9 +64,13 @@ type Metric struct {
 }
 
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	html, err := template.ParseFiles("web/server/index.html")
+	path, err := filepath.Abs("web/server/index.html")
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
+	}
+
+	html, err := template.ParseFiles(path)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
