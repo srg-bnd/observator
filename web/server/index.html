@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
   </head>
   <body>
-    {{if .Metrics}}
       <ul>
         {{range .Metrics}}
-        <li>{{.Name}}: {{.Value}}</li>
+        <li>
+          {{.Name}}: {{.Value}}
+        </li>
         {{end}}
       </ul>
-    {{end}}
   </body>
 </html>

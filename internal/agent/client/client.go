@@ -18,7 +18,7 @@ func NewClient() *Client {
 }
 
 func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
-	url := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue)
+	url := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue) + "/"
 	response, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Println(err)

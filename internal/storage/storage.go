@@ -1,7 +1,9 @@
 // Storage for metrics
 package storage
 
-import "errors"
+import (
+	"errors"
+)
 
 type (
 	gauge   float64
