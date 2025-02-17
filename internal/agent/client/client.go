@@ -3,7 +3,9 @@ package client
 
 import (
 	"log"
-	"net/http"
+	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -11,32 +13,33 @@ const (
 )
 
 type Client struct {
-	client *http.Client
+	client *resty.Client
 }
 
 func NewClient() *Client {
 	return &Client{
-		client: &http.Client{
-			Timeout: 0,
-		},
+		client: resty.New(),
 	}
 }
 
 func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
-	endpoint := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue) + "/"
-	request, err := http.NewRequest(http.MethodPost, endpoint, http.NoBody)
-	if err != nil {
-		panic(err)
-	}
+	c.client.
+		SetRetryCount(0).
+		SetRetryWaitTime(1 * time.Second).
+		SetRetryMaxWaitTime(1 * time.Second)
 
-	request.Header.Set("Content-Type", "text/plain; charset=UTF-8")
-	response, err := c.client.Do(request)
+	_, err := c.client.R().SetPathParams(map[string]string{
+		"metricType":  metricType,
+		"metricName":  metricName,
+		"metricValue": metricValue,
+	}).
+		SetHeader("Content-Type", "plain/text").
+		Post(getBaseURL() + "/update/{metricType}/{metricName}/{metricValue}/")
+
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	defer response.Body.Close()
 }
 
 func getBaseURL() string {
