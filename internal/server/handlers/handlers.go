@@ -73,6 +73,13 @@ type Metric struct {
 }
 
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) > 2 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	html, err := template.ParseFiles(h.indexFilePath)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
