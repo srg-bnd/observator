@@ -26,7 +26,7 @@ func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error
 
 	path := strings.Split(r.URL.Path, "/")
 	if len(path) < 4 {
-		return nil, errors.New("typeError")
+		return nil, errors.New("nameError")
 	}
 	metricType := path[2]
 	metricName := path[3]
