@@ -2,10 +2,10 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
-	"slices"
 	"strconv"
+	"strings"
+	"text/template"
 
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/server/services"
@@ -13,79 +13,100 @@ import (
 )
 
 type Handler struct {
-	service *services.Service
+	service       *services.Service
+	storage       storage.Repositories
+	indexFilePath string
 }
 
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
-		service: services.NewService(storage),
+		service:       services.NewService(storage),
+		storage:       storage,
+		indexFilePath: "web/server/index.html",
 	}
 }
 
-/* UpdateMetricHandler */
+func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) < 3 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	metricType := path[2]
+	metricName := path[3]
 
-func (h *Handler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metric, err := h.parseAndValidateMetric(r)
-	if err != nil {
-		h.handleError(w, err)
+	switch metricType {
+	case "counter":
+		value, err := h.storage.GetCounter(metricName)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.FormatInt(value, 10)))
+	case "gauge":
+		value, err := h.storage.GetGauge(metricName)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.FormatFloat(value, 'f', -1, 64)))
+	default:
+		{
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+type IndexData struct {
+	Metrics []Metric
+}
+
+type Metric struct {
+	Name  string
+	Value string
+}
+
+func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) > 2 {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	h.processMetric(w, metric)
-}
-
-func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error) {
-	metric := models.Metric{}
-
-	// Check type
-	if !slices.Contains([]string{"counter", "gauge"}, r.PathValue("metricType")) {
-		return nil, errors.New("typeError")
+	html, err := template.ParseFiles(h.indexFilePath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	metric.Type = r.PathValue("metricType")
 
-	// Check name
-	if r.PathValue("metricName") == "" {
-		return nil, errors.New("nameError")
-	}
-	metric.Name = r.PathValue("metricName")
+	metrics := make([]Metric, 0)
 
-	// Check value
-	switch metric.Type {
-	case "counter":
-		value, err := strconv.ParseInt(r.PathValue("metricValue"), 10, 64)
-		if err != nil {
-			return nil, errors.New("valueError")
+	for _, metric := range models.TrackedMetrics["counter"] {
+		value, err := h.storage.GetCounter(metric)
+		if err == nil {
+			metrics = append(metrics, Metric{Name: metric, Value: strconv.FormatInt(value, 10)})
 		}
-
-		metric.SetCounter(value)
-	case "gauge":
-		value, err := strconv.ParseFloat(r.PathValue("metricValue"), 64)
-		if err != nil {
-			return nil, errors.New("valueError")
-		}
-
-		metric.SetGauge(value)
 	}
 
-	return &metric, nil
-}
+	for _, metric := range models.TrackedMetrics["gauge"] {
+		value, err := h.storage.GetGauge(metric)
+		if err == nil {
+			metrics = append(metrics, Metric{Name: metric, Value: strconv.FormatFloat(value, 'f', -1, 64)})
+		}
+	}
 
-func (h *Handler) processMetric(w http.ResponseWriter, metric *models.Metric) {
-	err := h.service.MetricUpdateService(metric)
+	w.Header().Set("content-type", "text/html; charset=utf-8")
+	err = html.Execute(w, IndexData{Metrics: metrics})
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
-func (h *Handler) handleError(w http.ResponseWriter, err error) {
-	switch err.Error() {
-	case "typeError", "valueError":
-		w.WriteHeader(http.StatusBadRequest)
-	case "nameError":
-		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 }

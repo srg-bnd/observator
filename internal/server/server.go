@@ -1,3 +1,4 @@
+// Server
 package server
 
 import (
@@ -16,30 +17,51 @@ type Server struct {
 	handler *handlers.Handler
 }
 
+// Creates a new server
 func NewServer(storage storage.Repositories) *Server {
 	return &Server{
 		handler: handlers.NewHandler(storage),
 	}
 }
 
-// Init server dependencies before startup
+// Starts the server
 func (server *Server) Start() error {
 	host, err := getHost()
 	if err != nil {
 		return err
 	}
 
+	err = http.ListenAndServe(host, server.GetMux())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Init router
+func (server *Server) GetMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle(
-		`/update/{metricType}/{metricName}/{metricValue}`,
+		`/update/`,
 		middleware.Chain(
 			http.HandlerFunc(server.handler.UpdateMetricHandler),
 			middleware.CheckMethodPost,
 		))
 
-	http.ListenAndServe(host, mux)
+	mux.Handle(
+		`/value/`,
+		middleware.Chain(
+			http.HandlerFunc(server.handler.ShowMetricHandler),
+		))
 
-	return nil
+	mux.Handle(
+		`/`,
+		middleware.Chain(
+			http.HandlerFunc(server.handler.IndexHandler),
+		))
+
+	return mux
 }
 
 // Selects the server host
