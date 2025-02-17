@@ -2,10 +2,9 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/srg-bnd/observator/internal/server/models"
@@ -14,21 +13,31 @@ import (
 )
 
 type Handler struct {
-	service *services.Service
-	storage storage.Repositories
+	service       *services.Service
+	storage       storage.Repositories
+	indexFilePath string
 }
 
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
-		service: services.NewService(storage),
-		storage: storage,
+		service:       services.NewService(storage),
+		storage:       storage,
+		indexFilePath: "web/server/index.html",
 	}
 }
 
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.PathValue("metricType") {
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) < 3 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	metricType := path[2]
+	metricName := path[3]
+
+	switch metricType {
 	case "counter":
-		value, err := h.storage.GetCounter(r.PathValue("metricName"))
+		value, err := h.storage.GetCounter(metricName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -38,7 +47,7 @@ func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(strconv.FormatInt(value, 10)))
 	case "gauge":
-		value, err := h.storage.GetGauge(r.PathValue("metricName"))
+		value, err := h.storage.GetGauge(metricName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -64,12 +73,7 @@ type Metric struct {
 }
 
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	path, err := filepath.Abs("web/server/index.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	html, err := template.ParseFiles(path)
+	html, err := template.ParseFiles(h.indexFilePath)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

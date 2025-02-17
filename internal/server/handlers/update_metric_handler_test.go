@@ -18,8 +18,8 @@ func TestUpdateMetricHandler(t *testing.T) {
 		expectedCode int
 		path         string
 	}{
-		{method: http.MethodPost, expectedCode: http.StatusOK, path: "/update/counter/key/1"},
-		{method: http.MethodPost, expectedCode: http.StatusOK, path: "/update/gauge/key/1"},
+		{method: http.MethodPost, expectedCode: http.StatusOK, path: "/update/counter/key/1/"},
+		{method: http.MethodPost, expectedCode: http.StatusOK, path: "/update/gauge/key/1/"},
 	}
 
 	for _, tc := range testCases {

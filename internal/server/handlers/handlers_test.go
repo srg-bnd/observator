@@ -27,10 +27,10 @@ func TestShowMetricHandler(t *testing.T) {
 		expectedCode int
 		path         string
 	}{
-		{method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/counter/existKey"},
-		// {method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/counter/unknownKey"},
-		// {method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/gauge/existKey"},
-		// {method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/gauge/unknownKey"},
+		{method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/counter/existKey/"},
+		{method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/counter/unknownKey"},
+		{method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/gauge/existKey"},
+		{method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/gauge/unknownKey"},
 	}
 
 	for _, tc := range testCases {
@@ -48,6 +48,7 @@ func TestShowMetricHandler(t *testing.T) {
 func TestIndexHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
 	handler := NewHandler(storage)
+	handler.indexFilePath = "../../../" + handler.indexFilePath
 
 	testCases := []struct {
 		method       string
