@@ -11,20 +11,31 @@ const (
 )
 
 type Client struct {
+	client *http.Client
 }
 
 func NewClient() *Client {
-	return &Client{}
+	return &Client{
+		client: &http.Client{
+			Timeout: 0,
+		},
+	}
 }
 
 func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
-	url := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue) + "/"
-	response, err := http.Post(url, "text/plain", nil)
+	endpoint := getBaseURL() + "/update/" + metricType + "/" + metricName + "/" + string(metricValue) + "/"
+	request, err := http.NewRequest(http.MethodPost, endpoint, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	request.Header.Set("Content-Type", "text/plain; charset=UTF-8")
+	_, err = c.client.Do(request)
 	if err != nil {
 		log.Println(err)
-	} else {
-		response.Body.Close()
 	}
+
+	// defer response.Body.Close()
 }
 
 func getBaseURL() string {
