@@ -33,9 +33,10 @@ func (c *Client) SendMetric(metricType string, metricName string, metricValue st
 	response, err := c.client.Do(request)
 	if err != nil {
 		log.Println(err)
-	} else {
-		defer response.Body.Close()
+		return
 	}
+
+	defer response.Body.Close()
 }
 
 func getBaseURL() string {
