@@ -14,12 +14,7 @@ func TestNewService(t *testing.T) {
 	assert.IsType(t, service, &Service{})
 }
 
-func TestNewResult(t *testing.T) {
-	result := NewResult(true, "OK")
-	assert.IsType(t, result, &Result{})
-}
-
-func TestUpdateMetricServiceForCounter(t *testing.T) {
+func TestMetricUpdateServiceForCounter(t *testing.T) {
 	storage := storage.NewMemStorage()
 	service := NewService(storage)
 	metric := models.NewMetric()
@@ -27,12 +22,12 @@ func TestUpdateMetricServiceForCounter(t *testing.T) {
 	metric.Name = "metric"
 	metric.SetCounter(1)
 
-	result := service.UpdateMetricService(metric)
-	assert.Equal(t, result.Ok, true)
+	err := service.MetricUpdateService(metric)
+	assert.Nil(t, err)
 	assert.Equal(t, storage.GetCounter(metric.Name), metric.GetCounter())
 }
 
-func TestUpdateMetricServiceForGauge(t *testing.T) {
+func TestMetricUpdateServiceForGauge(t *testing.T) {
 	storage := storage.NewMemStorage()
 	service := NewService(storage)
 	metric := models.NewMetric()
@@ -40,7 +35,7 @@ func TestUpdateMetricServiceForGauge(t *testing.T) {
 	metric.Name = "metric"
 	metric.SetCounter(1.0)
 
-	result := service.UpdateMetricService(metric)
-	assert.Equal(t, result.Ok, true)
+	err := service.MetricUpdateService(metric)
+	assert.Nil(t, err)
 	assert.Equal(t, storage.GetGauge(metric.Name), metric.GetGauge())
 }
