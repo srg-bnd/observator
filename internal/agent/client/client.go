@@ -8,17 +8,16 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-const (
-	baseURL = "http://localhost:8080"
-)
-
 type Client struct {
-	client *resty.Client
+	client  *resty.Client
+	baseURL string
 }
 
-func NewClient() *Client {
+func NewClient(baseURL string) *Client {
 	return &Client{
 		client: resty.New(),
+		// HACK
+		baseURL: "http://" + baseURL,
 	}
 }
 
@@ -34,14 +33,10 @@ func (c *Client) SendMetric(metricType string, metricName string, metricValue st
 		"metricValue": metricValue,
 	}).
 		SetHeader("Content-Type", "plain/text").
-		Post(getBaseURL() + "/update/{metricType}/{metricName}/{metricValue}")
+		Post(c.baseURL + "/update/{metricType}/{metricName}/{metricValue}")
 
 	if err != nil {
 		log.Println(err)
 		return
 	}
-}
-
-func getBaseURL() string {
-	return baseURL
 }

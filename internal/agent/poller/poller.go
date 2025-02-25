@@ -10,10 +10,6 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-const (
-	defaultPollInterval = 2 * time.Second
-)
-
 type Poller struct {
 	storage   storage.Repositories
 	collector *collector.Collector
@@ -24,13 +20,13 @@ func NewPoller(storage storage.Repositories) *Poller {
 	return &Poller{
 		storage:   storage,
 		collector: collector.NewCollector(),
-		services:  services.NewService(storage),
+		services:  services.NewService(storage, nil),
 	}
 }
 
-func (r *Poller) Start() {
+func (r *Poller) Start(pollInterval time.Duration) {
 	for {
-		time.Sleep(GetPollInterval())
+		time.Sleep(pollInterval)
 		log.Println("=> Poller [started]")
 
 		metrics, err := r.collector.GetMetrics()
@@ -47,8 +43,4 @@ func (r *Poller) Start() {
 
 		log.Println("=> Poller [stopped]")
 	}
-}
-
-func GetPollInterval() time.Duration {
-	return defaultPollInterval
 }
