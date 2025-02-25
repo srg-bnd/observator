@@ -44,7 +44,7 @@ func (server *Server) Start() error {
 func (server *Server) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/update", server.handler.UpdateMetricHandler)
+	r.Post("/update", server.handler.UpdateMetricHandler)
 	r.Get("/value", server.handler.ShowMetricHandler)
 	r.Get("/", server.handler.IndexHandler)
 
