@@ -2,7 +2,7 @@ package middleware
 
 import "testing"
 
-func TestChain(t *testing.T) {
+func TestUse(t *testing.T) {
 	t.Logf("TODO")
 }
 
