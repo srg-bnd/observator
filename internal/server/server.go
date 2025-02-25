@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/handlers"
-	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -31,37 +30,12 @@ func (server *Server) Start() error {
 		return err
 	}
 
-	err = http.ListenAndServe(host, server.GetMux())
+	err = http.ListenAndServe(host, server.handler.GetRouter())
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// Init router
-func (server *Server) GetMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.Handle(
-		`/update/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.UpdateMetricHandler),
-			middleware.CheckMethodPost,
-		))
-
-	mux.Handle(
-		`/value/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.ShowMetricHandler),
-		))
-
-	mux.Handle(
-		`/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.IndexHandler),
-		))
-
-	return mux
 }
 
 // Selects the server host

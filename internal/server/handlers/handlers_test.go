@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
+	"github.com/go-chi/chi"
+	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewHandler(t *testing.T) {
@@ -15,32 +20,84 @@ func TestNewHandler(t *testing.T) {
 	assert.IsType(t, handler, &Handler{})
 }
 
-func TestShowMetricHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
-	handler := NewHandler(storage)
+func TestGetRouter(t *testing.T) {
+	type fields struct {
+		service      *services.Service
+		storage      storage.Repositories
+		rootFilePath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   chi.Router
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				service:      tt.fields.service,
+				storage:      tt.fields.storage,
+				rootFilePath: tt.fields.rootFilePath,
+			}
+			if got := h.GetRouter(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Handler.GetRouter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-	storage.SetCounter("existKey", 1)
-	storage.SetGauge("existKey", 1)
+func TestUpdateMetricHandler(t *testing.T) {
+	storage := storage.NewMemStorage()
+
+	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	defer ts.Close()
 
 	testCases := []struct {
-		method       string
-		expectedCode int
-		path         string
+		path   string
+		method string
+		status int
+		want   string
 	}{
-		{method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/counter/existKey/"},
-		{method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/counter/unknownKey"},
-		{method: http.MethodGet, expectedCode: http.StatusOK, path: "/value/gauge/existKey"},
-		{method: http.MethodGet, expectedCode: http.StatusNotFound, path: "/value/gauge/unknownKey"},
+		{path: "/update/counter/correctKey/1", method: "POST", status: http.StatusOK},
+		{path: "/update/gauge/correctKey/1", method: "POST", status: http.StatusOK},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.path, func(t *testing.T) {
-			r := httptest.NewRequest(tc.method, tc.path, nil)
-			w := httptest.NewRecorder()
+			resp, _ := testRequest(t, ts, tc.method, tc.path)
+			defer resp.Body.Close()
+			assert.Equal(t, tc.status, resp.StatusCode)
+		})
+	}
+}
 
-			handler.ShowMetricHandler(w, r)
+func TestShowMetricHandler(t *testing.T) {
+	storage := storage.NewMemStorage()
 
-			assert.Equal(t, tc.expectedCode, w.Code)
+	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	defer ts.Close()
+
+	storage.SetCounter("correctKey", 1)
+	storage.SetGauge("correctKey", 1)
+
+	testCases := []struct {
+		path   string
+		method string
+		status int
+		want   string
+	}{
+		{path: "/value/counter/correctKey", method: "GET", status: http.StatusOK, want: "1"},
+		{path: "/value/counter/unknownKey", method: "GET", status: http.StatusNotFound, want: ""},
+		{path: "/value/gauge/correctKey", method: "GET", status: http.StatusOK, want: "1"},
+		{path: "/value/gauge/unknownKey", method: "GET", status: http.StatusNotFound, want: ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.path, func(t *testing.T) {
+			resp, _ := testRequest(t, ts, tc.method, tc.path)
+			defer resp.Body.Close()
+			assert.Equal(t, tc.status, resp.StatusCode)
 		})
 	}
 }
@@ -48,7 +105,7 @@ func TestShowMetricHandler(t *testing.T) {
 func TestIndexHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
 	handler := NewHandler(storage)
-	handler.indexFilePath = "../../../" + handler.indexFilePath
+	handler.rootFilePath = "../../../" + handler.rootFilePath
 
 	testCases := []struct {
 		method       string
@@ -67,4 +124,20 @@ func TestIndexHandler(t *testing.T) {
 			assert.Equal(t, tc.expectedCode, w.Code)
 		})
 	}
+}
+
+// Helpers
+
+func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, nil)
+	require.NoError(t, err)
+
+	resp, err := ts.Client().Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
 }

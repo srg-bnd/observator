@@ -7,33 +7,50 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
 type Handler struct {
-	service       *services.Service
-	storage       storage.Repositories
-	indexFilePath string
+	service      *services.Service
+	storage      storage.Repositories
+	rootFilePath string
 }
 
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
-		service:       services.NewService(storage),
-		storage:       storage,
-		indexFilePath: "web/server/index.html",
+		service:      services.NewService(storage),
+		storage:      storage,
+		rootFilePath: "web/",
 	}
 }
 
-func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
-	path := strings.Split(r.URL.Path, "/")
-	if len(path) < 3 {
-		w.WriteHeader(http.StatusBadRequest)
+// Init router
+func (h *Handler) GetRouter() chi.Router {
+	r := chi.NewRouter()
+
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateMetricHandler)
+	r.Get("/value/{metricType}/{metricName}", h.ShowMetricHandler)
+	r.Get("/", h.IndexHandler)
+
+	return r
+}
+
+func (h *Handler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
+	metric, err := h.parseAndValidateMetric(r)
+	if err != nil {
+		h.handleError(w, err)
 		return
 	}
-	metricType := path[2]
-	metricName := path[3]
+
+	h.processMetric(w, metric)
+}
+
+func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
 
 	switch metricType {
 	case "counter":
@@ -80,7 +97,7 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html, err := template.ParseFiles(h.indexFilePath)
+	html, err := template.ParseFiles(h.rootFilePath + "server/index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
