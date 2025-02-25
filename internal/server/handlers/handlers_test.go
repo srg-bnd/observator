@@ -20,6 +20,57 @@ func TestNewHandler(t *testing.T) {
 	assert.IsType(t, handler, &Handler{})
 }
 
+func TestGetRouter(t *testing.T) {
+	type fields struct {
+		service      *services.Service
+		storage      storage.Repositories
+		rootFilePath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   chi.Router
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				service:      tt.fields.service,
+				storage:      tt.fields.storage,
+				rootFilePath: tt.fields.rootFilePath,
+			}
+			if got := h.GetRouter(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Handler.GetRouter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUpdateMetricHandler(t *testing.T) {
+	storage := storage.NewMemStorage()
+
+	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	defer ts.Close()
+
+	testCases := []struct {
+		path   string
+		method string
+		status int
+		want   string
+	}{
+		{path: "/update/counter/correctKey/1", method: "POST", status: http.StatusOK},
+		{path: "/update/gauge/correctKey/1", method: "POST", status: http.StatusOK},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.path, func(t *testing.T) {
+			resp, _ := testRequest(t, ts, tc.method, tc.path)
+			assert.Equal(t, tc.status, resp.StatusCode)
+		})
+	}
+}
+
 func TestShowMetricHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
 
@@ -87,31 +138,4 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 	require.NoError(t, err)
 
 	return resp, string(respBody)
-}
-
-func TestGetRouter(t *testing.T) {
-	type fields struct {
-		service      *services.Service
-		storage      storage.Repositories
-		rootFilePath string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   chi.Router
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{
-				service:      tt.fields.service,
-				storage:      tt.fields.storage,
-				rootFilePath: tt.fields.rootFilePath,
-			}
-			if got := h.GetRouter(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Handler.GetRouter() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }

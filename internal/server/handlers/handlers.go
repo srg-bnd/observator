@@ -31,11 +31,21 @@ func NewHandler(storage storage.Repositories) *Handler {
 func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/update", h.UpdateMetricHandler)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateMetricHandler)
 	r.Get("/value/{metricType}/{metricName}", h.ShowMetricHandler)
 	r.Get("/", h.IndexHandler)
 
 	return r
+}
+
+func (h *Handler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
+	metric, err := h.parseAndValidateMetric(r)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	h.processMetric(w, metric)
 }
 
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {

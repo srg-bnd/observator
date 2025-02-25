@@ -6,31 +6,17 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
-	"strings"
 
+	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
 )
-
-func (h *Handler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metric, err := h.parseAndValidateMetric(r)
-	if err != nil {
-		h.handleError(w, err)
-		return
-	}
-
-	h.processMetric(w, metric)
-}
 
 func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error) {
 	metric := models.Metric{}
 
-	path := strings.Split(r.URL.Path, "/")
-	if len(path) < 5 {
-		return nil, errors.New("nameError")
-	}
-	metricType := path[2]
-	metricName := path[3]
-	metricValue := path[4]
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
+	metricValue := chi.URLParam(r, "metricValue")
 
 	// Check type
 	if !slices.Contains([]string{"counter", "gauge"}, metricType) {

@@ -34,7 +34,7 @@ func (c *Client) SendMetric(metricType string, metricName string, metricValue st
 		"metricValue": metricValue,
 	}).
 		SetHeader("Content-Type", "plain/text").
-		Post(getBaseURL() + "/update/{metricType}/{metricName}/{metricValue}/")
+		Post(getBaseURL() + "/update/{metricType}/{metricName}/{metricValue}")
 
 	if err != nil {
 		log.Println(err)
