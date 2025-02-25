@@ -14,16 +14,16 @@ import (
 )
 
 type Handler struct {
-	service       *services.Service
-	storage       storage.Repositories
-	indexFilePath string
+	service      *services.Service
+	storage      storage.Repositories
+	rootFilePath string
 }
 
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
-		service:       services.NewService(storage),
-		storage:       storage,
-		indexFilePath: "web/server/index.html",
+		service:      services.NewService(storage),
+		storage:      storage,
+		rootFilePath: "web/",
 	}
 }
 
@@ -76,7 +76,7 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html, err := template.ParseFiles(h.indexFilePath)
+	html, err := template.ParseFiles(h.rootFilePath + "server/index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

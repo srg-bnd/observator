@@ -48,7 +48,7 @@ func TestShowMetricHandler(t *testing.T) {
 func TestIndexHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
 	handler := NewHandler(storage)
-	handler.indexFilePath = "../../../" + handler.indexFilePath
+	handler.rootFilePath = "../../../" + handler.rootFilePath
 
 	testCases := []struct {
 		method       string
