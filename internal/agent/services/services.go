@@ -14,10 +14,10 @@ type Service struct {
 	client  *client.Client
 }
 
-func NewService(storage storage.Repositories) *Service {
+func NewService(storage storage.Repositories, client *client.Client) *Service {
 	return &Service{
 		storage: storage,
-		client:  client.NewClient(),
+		client:  client,
 	}
 }
 

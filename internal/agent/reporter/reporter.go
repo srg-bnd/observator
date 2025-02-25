@@ -5,13 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/srg-bnd/observator/internal/agent/client"
 	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/agent/services"
 	"github.com/srg-bnd/observator/internal/storage"
-)
-
-const (
-	defaultReportInterval = 10 * time.Second
 )
 
 type Reporter struct {
@@ -19,16 +16,16 @@ type Reporter struct {
 	service *services.Service
 }
 
-func NewReporter(storage storage.Repositories) *Reporter {
+func NewReporter(storage storage.Repositories, client *client.Client) *Reporter {
 	return &Reporter{
 		storage: storage,
-		service: services.NewService(storage),
+		service: services.NewService(storage, client),
 	}
 }
 
-func (r *Reporter) Start() {
+func (r *Reporter) Start(reportInterval time.Duration) {
 	for {
-		time.Sleep(GetReportInterval())
+		time.Sleep(reportInterval)
 		log.Println("=> Reporter [started]")
 		err := r.service.ValueSendingService(collector.TrackedMetrics)
 		if err != nil {
@@ -37,8 +34,4 @@ func (r *Reporter) Start() {
 		}
 		log.Println("=> Reporter [stopped]")
 	}
-}
-
-func GetReportInterval() time.Duration {
-	return defaultReportInterval
 }

@@ -5,12 +5,7 @@ import (
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/handlers"
-	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/storage"
-)
-
-const (
-	defaultHost = `:8080`
 )
 
 type Server struct {
@@ -25,46 +20,11 @@ func NewServer(storage storage.Repositories) *Server {
 }
 
 // Starts the server
-func (server *Server) Start() error {
-	host, err := getHost()
-	if err != nil {
-		return err
-	}
-
-	err = http.ListenAndServe(host, server.GetMux())
+func (server *Server) Start(addr string) error {
+	err := http.ListenAndServe(addr, server.handler.GetRouter())
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// Init router
-func (server *Server) GetMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.Handle(
-		`/update/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.UpdateMetricHandler),
-			middleware.CheckMethodPost,
-		))
-
-	mux.Handle(
-		`/value/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.ShowMetricHandler),
-		))
-
-	mux.Handle(
-		`/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.IndexHandler),
-		))
-
-	return mux
-}
-
-// Selects the server host
-func getHost() (string, error) {
-	return defaultHost, nil
 }
