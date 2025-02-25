@@ -1,10 +1,10 @@
+// Server
 package server
 
 import (
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/handlers"
-	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -16,28 +16,24 @@ type Server struct {
 	handler *handlers.Handler
 }
 
+// Creates a new server
 func NewServer(storage storage.Repositories) *Server {
 	return &Server{
 		handler: handlers.NewHandler(storage),
 	}
 }
 
-// Init server dependencies before startup
+// Starts the server
 func (server *Server) Start() error {
 	host, err := getHost()
 	if err != nil {
 		return err
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle(
-		`/update/{metricType}/{metricName}/{metricValue}`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.UpdateMetricHandler),
-			middleware.CheckMethodPost,
-		))
-
-	http.ListenAndServe(host, mux)
+	err = http.ListenAndServe(host, server.handler.GetRouter())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

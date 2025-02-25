@@ -28,7 +28,7 @@ func TestGetGauge(t *testing.T) {
 	memStore := NewMemStorage()
 	want := float64(1)
 	memStore.gauges["key"] = gauge(want)
-	got := memStore.GetGauge("key")
+	got, _ := memStore.GetGauge("key")
 
 	if want != float64(got) {
 		t.Errorf(`Incorrect 'GetGauge("key")' method behavior, got "%v", want "%v"`, got, want)
@@ -51,7 +51,8 @@ func TestGetCounter(t *testing.T) {
 	memStore := NewMemStorage()
 	want := int64(1)
 	memStore.counters["key"] = counter(want)
-	got := int64(memStore.GetCounter("key"))
+	value, _ := memStore.GetCounter("key")
+	got := int64(value)
 
 	if want != got {
 		t.Errorf(`Incorrect 'GetCounter("key")' method behavior, got "%v", want "%v"`, got, want)

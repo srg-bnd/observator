@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,13 +27,13 @@ func TestGetPollInterval(t *testing.T) {
 }
 
 func TestTrackedMetrics(t *testing.T) {
-	trackedMetrics := trackedMetrics()
+	trackedMetrics := collector.TrackedMetrics
 
-	for _, trackedMetric := range trackedMetrics.Counter {
+	for _, trackedMetric := range trackedMetrics["counter"] {
 		assert.Contains(t, []string{"PollCount"}, trackedMetric)
 	}
 
-	for _, trackedMetric := range trackedMetrics.Gauge {
+	for _, trackedMetric := range trackedMetrics["gauge"] {
 		t.Run(trackedMetric, func(t *testing.T) {
 			assert.Contains(
 				t,
