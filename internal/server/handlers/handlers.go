@@ -27,6 +27,17 @@ func NewHandler(storage storage.Repositories) *Handler {
 	}
 }
 
+// Init router
+func (h *Handler) GetRouter() chi.Router {
+	r := chi.NewRouter()
+
+	r.Post("/update", h.UpdateMetricHandler)
+	r.Get("/value/{metricType}/{metricName}", h.ShowMetricHandler)
+	r.Get("/", h.IndexHandler)
+
+	return r
+}
+
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")

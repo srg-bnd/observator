@@ -4,8 +4,6 @@ package server
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-
 	"github.com/srg-bnd/observator/internal/server/handlers"
 	"github.com/srg-bnd/observator/internal/storage"
 )
@@ -32,23 +30,12 @@ func (server *Server) Start() error {
 		return err
 	}
 
-	err = http.ListenAndServe(host, server.GetRouter())
+	err = http.ListenAndServe(host, server.handler.GetRouter())
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// Init router
-func (server *Server) GetRouter() chi.Router {
-	r := chi.NewRouter()
-
-	r.Post("/update", server.handler.UpdateMetricHandler)
-	r.Get("/value/{metricType}/{metricName}", server.handler.ShowMetricHandler)
-	r.Get("/", server.handler.IndexHandler)
-
-	return r
 }
 
 // Selects the server host
