@@ -4,8 +4,9 @@ package server
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/srg-bnd/observator/internal/server/handlers"
-	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -31,7 +32,7 @@ func (server *Server) Start() error {
 		return err
 	}
 
-	err = http.ListenAndServe(host, server.GetMux())
+	err = http.ListenAndServe(host, server.GetRouter())
 	if err != nil {
 		return err
 	}
@@ -40,28 +41,14 @@ func (server *Server) Start() error {
 }
 
 // Init router
-func (server *Server) GetMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.Handle(
-		`/update/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.UpdateMetricHandler),
-			middleware.CheckMethodPost,
-		))
+func (server *Server) GetRouter() chi.Router {
+	r := chi.NewRouter()
 
-	mux.Handle(
-		`/value/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.ShowMetricHandler),
-		))
+	r.Get("/update", server.handler.UpdateMetricHandler)
+	r.Get("/value", server.handler.ShowMetricHandler)
+	r.Get("/", server.handler.IndexHandler)
 
-	mux.Handle(
-		`/`,
-		middleware.Chain(
-			http.HandlerFunc(server.handler.IndexHandler),
-		))
-
-	return mux
+	return r
 }
 
 // Selects the server host
