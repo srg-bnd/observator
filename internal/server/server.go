@@ -8,10 +8,6 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-const (
-	defaultHost = `:8080`
-)
-
 type Server struct {
 	handler *handlers.Handler
 }
@@ -24,21 +20,11 @@ func NewServer(storage storage.Repositories) *Server {
 }
 
 // Starts the server
-func (server *Server) Start() error {
-	host, err := getHost()
-	if err != nil {
-		return err
-	}
-
-	err = http.ListenAndServe(host, server.handler.GetRouter())
+func (server *Server) Start(addr string) error {
+	err := http.ListenAndServe(addr, server.handler.GetRouter())
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// Selects the server host
-func getHost() (string, error) {
-	return defaultHost, nil
 }
