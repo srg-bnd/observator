@@ -2,7 +2,6 @@ package poller
 
 import (
 	"testing"
-	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
@@ -16,14 +15,6 @@ func TestNewPoller(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	t.Logf("TODO")
-}
-
-func TestConsts(t *testing.T) {
-	assert.Equal(t, defaultPollInterval, 2*time.Second)
-}
-
-func TestGetPollInterval(t *testing.T) {
-	assert.Equal(t, GetPollInterval(), 2*time.Second)
 }
 
 func TestTrackedMetrics(t *testing.T) {

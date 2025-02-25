@@ -15,12 +15,14 @@ type App struct {
 func NewApp() *App {
 	storage := storage.NewMemStorage()
 	return &App{
-		agent: agent.NewAgent(storage),
+		agent: agent.NewAgent(storage, AgentFlags.serverAddr),
 	}
 }
 
 func main() {
-	if err := NewApp().agent.Start(); err != nil {
+	parseFlags()
+
+	if err := NewApp().agent.Start(AgentFlags.pollInterval, AgentFlags.reportInterval); err != nil {
 		log.Fatal(err)
 	}
 }
