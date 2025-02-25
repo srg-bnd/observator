@@ -15,8 +15,9 @@ type Client struct {
 
 func NewClient(baseURL string) *Client {
 	return &Client{
-		client:  resty.New(),
-		baseURL: baseURL,
+		client: resty.New(),
+		// HACK
+		baseURL: "http://" + baseURL,
 	}
 }
 
