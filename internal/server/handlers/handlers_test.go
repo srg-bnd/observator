@@ -66,6 +66,7 @@ func TestUpdateMetricHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.path, func(t *testing.T) {
 			resp, _ := testRequest(t, ts, tc.method, tc.path)
+			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 		})
 	}
@@ -95,6 +96,7 @@ func TestShowMetricHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.path, func(t *testing.T) {
 			resp, _ := testRequest(t, ts, tc.method, tc.path)
+			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 		})
 	}
