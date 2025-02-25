@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
@@ -27,13 +28,8 @@ func NewHandler(storage storage.Repositories) *Handler {
 }
 
 func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
-	path := strings.Split(r.URL.Path, "/")
-	if len(path) < 3 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	metricType := path[2]
-	metricName := path[3]
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
 
 	switch metricType {
 	case "counter":

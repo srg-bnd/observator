@@ -45,7 +45,7 @@ func (server *Server) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/update", server.handler.UpdateMetricHandler)
-	r.Get("/value", server.handler.ShowMetricHandler)
+	r.Get("/value/{metricType}/{metricName}", server.handler.ShowMetricHandler)
 	r.Get("/", server.handler.IndexHandler)
 
 	return r
