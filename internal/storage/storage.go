@@ -1,6 +1,10 @@
 // Storage for metrics
 package storage
 
+import (
+	"errors"
+)
+
 type (
 	gauge   float64
 	counter int64
@@ -8,9 +12,9 @@ type (
 
 type Repositories interface {
 	SetGauge(string, float64) error
-	GetGauge(string) float64
+	GetGauge(string) (float64, error)
 	SetCounter(string, int64) error
-	GetCounter(string) int64
+	GetCounter(string) (int64, error)
 }
 
 type MemStorage struct {
@@ -33,8 +37,13 @@ func (mStore *MemStorage) SetGauge(key string, value float64) error {
 }
 
 // Return gauge by key
-func (mStore *MemStorage) GetGauge(key string) float64 {
-	return float64(mStore.gauges[key])
+func (mStore *MemStorage) GetGauge(key string) (float64, error) {
+	value, ok := mStore.gauges[key]
+	if !ok {
+		return -1, errors.New("unknown")
+	}
+
+	return float64(value), nil
 }
 
 // Change counter by key
@@ -44,6 +53,11 @@ func (mStore *MemStorage) SetCounter(key string, value int64) error {
 }
 
 // Return gauge by counter
-func (mStore *MemStorage) GetCounter(key string) int64 {
-	return int64(mStore.counters[key])
+func (mStore *MemStorage) GetCounter(key string) (int64, error) {
+	value, ok := mStore.counters[key]
+	if !ok {
+		return -1, errors.New("unknown")
+	}
+
+	return int64(value), nil
 }
