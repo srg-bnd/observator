@@ -24,7 +24,7 @@ func NewApp() *App {
 func main() {
 	parseFlags()
 
-	if err := NewApp().server.Start(flagHostAddr); err != nil {
+	if err := NewApp().server.Start(appConfigs.flagHostAddr); err != nil {
 		log.Fatal(err)
 	}
 }

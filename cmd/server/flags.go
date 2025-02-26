@@ -6,13 +6,17 @@ import (
 	"os"
 )
 
-var flagHostAddr string
+type AppConfigs struct {
+	flagHostAddr string
+}
+
+var appConfigs = AppConfigs{}
 
 func parseFlags() {
-	flag.StringVar(&flagHostAddr, "a", ":8080", "address and port to run server")
+	flag.StringVar(&appConfigs.flagHostAddr, "a", ":8080", "address and port to run server")
 	flag.Parse()
 
 	if envHostAddr := os.Getenv("ADDRESS"); envHostAddr != "" {
-		flagHostAddr = envHostAddr
+		appConfigs.flagHostAddr = envHostAddr
 	}
 }
