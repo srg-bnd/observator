@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
@@ -29,9 +30,9 @@ func NewHandler(storage storage.Repositories) *Handler {
 func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateMetricHandler)
-	r.Get("/value/{metricType}/{metricName}", h.ShowMetricHandler)
-	r.Get("/", h.IndexHandler)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", logger.RequestLogger(h.UpdateMetricHandler))
+	r.Get("/value/{metricType}/{metricName}", logger.RequestLogger(h.ShowMetricHandler))
+	r.Get("/", logger.RequestLogger(h.IndexHandler))
 
 	return r
 }
