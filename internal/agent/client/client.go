@@ -3,7 +3,6 @@ package client
 
 import (
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -26,7 +25,7 @@ func NewClient(baseURL string) *Client {
 func (c *Client) SendMetric(metrics *models.Metrics) {
 	data, err := json.Marshal(&metrics)
 	if err != nil {
-		log.Println(err)
+		// log.Println(err)
 		return
 	}
 
@@ -40,7 +39,7 @@ func (c *Client) SendMetric(metrics *models.Metrics) {
 		Post(c.baseURL + "/update/{metricType}/{metricName}/{metricValue}")
 
 	if err != nil {
-		log.Println(err)
+		// log.Println(err)
 		return
 	}
 }
