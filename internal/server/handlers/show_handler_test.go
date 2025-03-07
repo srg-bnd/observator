@@ -67,10 +67,10 @@ func TestShowAsJSONHandler(t *testing.T) {
 		body   string
 		want   string
 	}{
-		{name: "correct counter", path: "/value", method: "GET", status: http.StatusOK, body: string(counterMetrics), want: string(wantCounterMetrics)},
-		{name: "correct gauge", path: "/value", method: "GET", status: http.StatusOK, body: string(gaugeMetrics), want: string(wantGaugeMetrics)},
-		{name: "incorrect values", path: "/value", method: "GET", status: http.StatusNotFound, body: `{"ID": "unknown", "MType": "unknown"}`, want: ""},
-		{name: "empty body", path: "/value", method: "GET", status: http.StatusBadRequest, body: "", want: ""},
+		{name: "correct counter", path: "/value", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(wantCounterMetrics)},
+		{name: "correct gauge", path: "/value", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(wantGaugeMetrics)},
+		{name: "incorrect values", path: "/value", method: "POST", status: http.StatusNotFound, body: `{"ID": "unknown", "MType": "unknown"}`, want: ""},
+		{name: "empty body", path: "/value", method: "POST", status: http.StatusBadRequest, body: "", want: ""},
 	}
 
 	for _, tc := range testCases {
