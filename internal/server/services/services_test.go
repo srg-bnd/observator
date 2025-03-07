@@ -17,27 +17,27 @@ func TestNewService(t *testing.T) {
 func TestMetricUpdateServiceForCounter(t *testing.T) {
 	storage := storage.NewMemStorage()
 	service := NewService(storage)
-	metric := models.NewMetric()
-	metric.Type = "counter"
-	metric.Name = "metric"
-	metric.SetCounter(1)
+	metrics := models.NewMetrics()
+	metrics.MType = "counter"
+	metrics.ID = "metric"
+	metrics.SetCounter(1)
 
-	err := service.MetricUpdateService(metric)
+	err := service.MetricUpdateService(metrics)
 	assert.Nil(t, err)
-	value, _ := storage.GetCounter(metric.Name)
-	assert.Equal(t, value, metric.GetCounter())
+	value, _ := storage.GetCounter(metrics.ID)
+	assert.Equal(t, value, metrics.GetCounter())
 }
 
 func TestMetricUpdateServiceForGauge(t *testing.T) {
 	storage := storage.NewMemStorage()
 	service := NewService(storage)
-	metric := models.NewMetric()
-	metric.Type = "gauge"
-	metric.Name = "metric"
-	metric.SetCounter(1.0)
+	metrics := models.NewMetrics()
+	metrics.MType = "gauge"
+	metrics.ID = "metric"
+	metrics.SetGauge(1.0)
 
-	err := service.MetricUpdateService(metric)
+	err := service.MetricUpdateService(metrics)
 	assert.Nil(t, err)
-	value, _ := storage.GetGauge(metric.Name)
-	assert.Equal(t, value, metric.GetGauge())
+	value, _ := storage.GetGauge(metrics.ID)
+	assert.Equal(t, value, metrics.GetGauge())
 }

@@ -6,37 +6,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewMetric(t *testing.T) {
-	metric := NewMetric()
-	assert.IsType(t, metric, &Metric{})
+func TestNewMetrics(t *testing.T) {
+	metrics := NewMetrics()
+	assert.IsType(t, metrics, &Metrics{})
 }
 
 func TestSetCounter(t *testing.T) {
-	metric := NewMetric()
-	metric.SetCounter(1)
+	metrics := NewMetrics()
+	metrics.SetCounter(1)
 
-	assert.Equal(t, metric.counterValue, int64(1))
+	assert.Equal(t, *metrics.Delta, int64(1))
 }
 
 func TestGetCounter(t *testing.T) {
-	metric := NewMetric()
-	metric.SetCounter(1)
+	metrics := NewMetrics()
+	metrics.SetCounter(1)
 
-	assert.Equal(t, metric.GetCounter(), int64(1))
+	assert.Equal(t, metrics.GetCounter(), int64(1))
 }
 
 func TestSetGauge(t *testing.T) {
-	metric := NewMetric()
-	metric.SetGauge(1)
+	metrics := NewMetrics()
+	metrics.SetGauge(1)
 
-	assert.Equal(t, metric.gaugeValue, float64(1))
+	assert.Equal(t, *metrics.Value, float64(1))
 }
 
 func TestGetGauge(t *testing.T) {
-	metric := NewMetric()
-	metric.SetGauge(1)
+	metrics := NewMetrics()
+	metrics.SetGauge(1)
 
-	assert.Equal(t, metric.GetGauge(), float64(1))
+	assert.Equal(t, metrics.GetGauge(), float64(1))
 }
 
 func TestVars(t *testing.T) {

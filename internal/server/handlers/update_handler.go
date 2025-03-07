@@ -35,8 +35,8 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helpers
 
-func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error) {
-	metric := models.Metric{}
+func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metrics, error) {
+	metrics := models.Metrics{}
 
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
@@ -46,37 +46,37 @@ func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error
 	if !slices.Contains([]string{"counter", "gauge"}, metricType) {
 		return nil, errors.New("typeError")
 	}
-	metric.Type = metricType
+	metrics.MType = metricType
 
 	// Check name
 	if metricName == "" {
 		return nil, errors.New("nameError")
 	}
-	metric.Name = metricName
+	metrics.ID = metricName
 
 	// Check value
-	switch metric.Type {
+	switch metrics.MType {
 	case "counter":
 		value, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
 			return nil, errors.New("valueError")
 		}
 
-		metric.SetCounter(value)
+		metrics.SetCounter(value)
 	case "gauge":
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			return nil, errors.New("valueError")
 		}
 
-		metric.SetGauge(value)
+		metrics.SetGauge(value)
 	}
 
-	return &metric, nil
+	return &metrics, nil
 }
 
-func (h *Handler) processMetric(w http.ResponseWriter, metric *models.Metric) {
-	err := h.service.MetricUpdateService(metric)
+func (h *Handler) processMetric(w http.ResponseWriter, metrics *models.Metrics) {
+	err := h.service.MetricUpdateService(metrics)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

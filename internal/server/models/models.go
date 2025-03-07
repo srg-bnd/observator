@@ -8,15 +8,8 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"` // gauge
 }
 
-type Metric struct {
-	Type         string
-	Name         string
-	counterValue int64
-	gaugeValue   float64
-}
-
-func NewMetric() *Metric {
-	return &Metric{}
+func NewMetrics() *Metrics {
+	return &Metrics{}
 }
 
 var TrackedMetrics = map[string][]string{
@@ -55,18 +48,18 @@ var TrackedMetrics = map[string][]string{
 	},
 }
 
-func (m *Metric) SetCounter(value int64) {
-	m.counterValue = value
+func (m *Metrics) SetCounter(value int64) {
+	m.Delta = &value
 }
 
-func (m *Metric) GetCounter() int64 {
-	return m.counterValue
+func (m *Metrics) GetCounter() int64 {
+	return *m.Delta
 }
 
-func (m *Metric) SetGauge(value float64) {
-	m.gaugeValue = value
+func (m *Metrics) SetGauge(value float64) {
+	m.Value = &value
 }
 
-func (m *Metric) GetGauge() float64 {
-	return m.gaugeValue
+func (m *Metrics) GetGauge() float64 {
+	return *m.Value
 }

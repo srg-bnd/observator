@@ -16,12 +16,12 @@ func NewService(storage storage.Repositories) *Service {
 	}
 }
 
-func (service *Service) MetricUpdateService(metric *models.Metric) error {
-	switch metric.Type {
+func (service *Service) MetricUpdateService(metric *models.Metrics) error {
+	switch metric.MType {
 	case "counter":
-		service.storage.SetCounter(metric.Name, metric.GetCounter())
+		service.storage.SetCounter(metric.ID, metric.GetCounter())
 	case "gauge":
-		service.storage.SetGauge(metric.Name, metric.GetGauge())
+		service.storage.SetGauge(metric.ID, metric.GetGauge())
 	}
 
 	return nil
