@@ -1,4 +1,4 @@
-// Models for server
+// Models for agent
 package models
 
 type Metrics struct {

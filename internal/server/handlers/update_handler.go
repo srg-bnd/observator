@@ -1,4 +1,4 @@
-// UpdateMetricHandler for server
+// Update Handlers (Metrics)
 package handlers
 
 import (
@@ -10,6 +10,30 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
 )
+
+// POST /update/{metricType}/{metricName}/{metricValue}
+func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	metric, err := h.parseAndValidateMetric(r)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	h.processMetric(w, metric)
+}
+
+// POST /update
+func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	metric, err := h.parseAndValidateMetric(r)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	h.processMetric(w, metric)
+}
+
+// Helpers
 
 func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metric, error) {
 	metric := models.Metric{}
