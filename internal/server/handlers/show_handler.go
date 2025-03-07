@@ -9,7 +9,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/models"
+	"go.uber.org/zap"
 )
 
 const (
@@ -20,7 +22,7 @@ const (
 func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 
-	metrics, err := findMetricsForShow(h, r)
+	metrics, err := findMetricsForShow(h, w, r)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
@@ -36,7 +38,7 @@ func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	metrics, err := findMetricsForShow(h, r)
+	metrics, err := findMetricsForShow(h, w, r)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
@@ -50,7 +52,7 @@ func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helpers
 
-func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
+func findMetricsForShow(h *Handler, w http.ResponseWriter, r *http.Request) (*models.Metrics, error) {
 	var metrics models.Metrics
 
 	// Build metrics
@@ -61,8 +63,13 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 			return &metrics, errors.New(invalidDataError)
 		}
 
+		data := buf.Bytes()
+		logger.Log.Info("got incoming HTTP request [BODY]",
+			zap.String("uri", string(data)),
+		)
+
 		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		if err = json.Unmarshal(data, &metrics); err != nil {
 			return &metrics, errors.New(invalidDataError)
 		}
 	} else {
