@@ -11,9 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/models"
-	"go.uber.org/zap"
 )
 
 const (
@@ -45,14 +43,6 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	headers := ""
-	for name, values := range r.Header {
-		for _, value := range values {
-			headers += name + ": " + value + ", "
-		}
-	}
-	logger.Log.Info("===> CHECK UPDATE [WORKED]", zap.String("uri", headers))
-
 	metrics, err := parseAndValidateMetricsForUpdate(h, r, JSONFormat)
 	if err != nil {
 		handleErrorForUpdate(w, err)
@@ -79,17 +69,13 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string
 	if format == JSONFormat {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
-		data := buf.Bytes()
-		logger.Log.Info("===> CHECK UPDATE [BODY]",
-			zap.String("uri", string(data)),
-		)
 
 		if err != nil {
 			return &metrics, errors.New(invalidDataError)
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(data, &metrics); err != nil {
+		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
 			return &metrics, errors.New(invalidDataError)
 		}
 	} else {
