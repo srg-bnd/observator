@@ -11,7 +11,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/models"
+	"go.uber.org/zap"
 )
 
 const (
@@ -69,12 +71,17 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metr
 	if strings.Contains(r.Header.Get("content-type"), "application/json") {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
+		data := buf.Bytes()
+		logger.Log.Info("===> CHECK UPDATE [BODY]",
+			zap.String("uri", string(data)),
+		)
+
 		if err != nil {
 			return &metrics, errors.New(invalidDataError)
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		if err = json.Unmarshal(data, &metrics); err != nil {
 			return &metrics, errors.New(invalidDataError)
 		}
 	} else {

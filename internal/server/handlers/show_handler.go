@@ -60,7 +60,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
 		data := buf.Bytes()
-		logger.Log.Info("got incoming HTTP request [BODY]",
+		logger.Log.Info("===> CHECK SHOW [BODY]",
 			zap.String("uri", string(data)),
 		)
 
