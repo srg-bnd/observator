@@ -75,15 +75,23 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	case "counter":
 		delta, err := h.storage.GetCounter(metrics.ID)
 		if err != nil {
-			return &metrics, errors.New(notExistError)
+			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+			} else {
+				return &metrics, errors.New(notExistError)
+			}
+		} else {
+			metrics.Delta = &delta
 		}
-		metrics.Delta = &delta
 	case "gauge":
 		value, err := h.storage.GetGauge(metrics.ID)
 		if err != nil {
-			return &metrics, errors.New(notExistError)
+			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+			} else {
+				return &metrics, errors.New(notExistError)
+			}
+		} else {
+			metrics.Value = &value
 		}
-		metrics.Value = &value
 	default:
 		return &metrics, errors.New(notExistError)
 	}
