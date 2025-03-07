@@ -2,10 +2,12 @@
 package client
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/srg-bnd/observator/internal/agent/models"
 )
 
 type Client struct {
@@ -21,17 +23,19 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) SendMetric(metricType string, metricName string, metricValue string) {
+func (c *Client) SendMetric(metrics *models.Metrics) {
+	data, err := json.Marshal(&metrics)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	c.client.
 		SetRetryCount(0).
 		SetRetryWaitTime(1 * time.Second).
 		SetRetryMaxWaitTime(1 * time.Second)
 
-	_, err := c.client.R().SetPathParams(map[string]string{
-		"metricType":  metricType,
-		"metricName":  metricName,
-		"metricValue": metricValue,
-	}).
+	_, err = c.client.R().SetBody(data).
 		SetHeader("Content-Type", "plain/text").
 		Post(c.baseURL + "/update/{metricType}/{metricName}/{metricValue}")
 
