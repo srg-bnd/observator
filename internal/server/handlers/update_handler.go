@@ -19,7 +19,7 @@ const (
 
 // POST /update/{metricType}/{metricName}/{metricValue}
 func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	setContentType(w, TextFormat)
 
 	metrics, err := parseAndValidateMetricsForUpdate(h, r, TextFormat)
 	if err != nil {
@@ -40,7 +40,7 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 // POST /update
 func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
+	setContentType(w, JSONFormat)
 
 	metrics, err := parseAndValidateMetricsForUpdate(h, r, JSONFormat)
 	if err != nil {

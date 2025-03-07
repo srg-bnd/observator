@@ -50,6 +50,10 @@ func TestHandleError(t *testing.T) {
 	t.Logf("TODO")
 }
 
+func TestSetContentType(t *testing.T) {
+	t.Logf("TODO")
+}
+
 // Helpers
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {

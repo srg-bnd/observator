@@ -17,7 +17,7 @@ const (
 
 // GET /value/{metricType}/{metricName}
 func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	setContentType(w, TextFormat)
 
 	metrics, err := findMetricsForShow(h, r, TextFormat)
 	if err != nil {
@@ -33,7 +33,7 @@ func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 
 // GET /value
 func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
+	setContentType(w, JSONFormat)
 
 	metrics, err := findMetricsForShow(h, r, JSONFormat)
 	if err != nil {

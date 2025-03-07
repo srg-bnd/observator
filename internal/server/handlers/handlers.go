@@ -17,6 +17,7 @@ const (
 
 	// Formats
 	JSONFormat = "json"
+	HTMLFormat = "text/html"
 	TextFormat = "text"
 )
 
@@ -46,6 +47,18 @@ func (h *Handler) GetRouter() chi.Router {
 	r.Post("/update/", logger.RequestLogger(h.UpdateAsJSONHandler))
 
 	return r
+}
+
+// Set content type
+func setContentType(w http.ResponseWriter, format string) {
+	switch format {
+	case JSONFormat:
+		w.Header().Set("content-type", "application/json")
+	case HTMLFormat:
+		w.Header().Set("content-type", "text/html; charset=utf-8")
+	case TextFormat:
+		w.Header().Set("content-type", "text/plain; charset=utf-8")
+	}
 }
 
 // Handle errors

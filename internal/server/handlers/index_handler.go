@@ -9,7 +9,7 @@ import (
 
 // GET /
 func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "text/html; charset=utf-8")
+	setContentType(w, HTMLFormat)
 
 	metricsByMType, err := getMetricsByMTypeForIndex(h, r)
 	if err != nil {
