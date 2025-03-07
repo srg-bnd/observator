@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
@@ -20,13 +19,13 @@ const (
 func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 
-	metrics, err := findMetricsForShow(h, r)
+	metrics, err := findMetricsForShow(h, r, TextFormat)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
 	}
 
-	if err != representForShow(w, r, metrics) {
+	if err != representForShow(w, r, metrics, TextFormat) {
 		handleErrorForShow(w, err)
 		return
 	}
@@ -36,13 +35,13 @@ func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	metrics, err := findMetricsForShow(h, r)
+	metrics, err := findMetricsForShow(h, r, JSONFormat)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
 	}
 
-	if err != representForShow(w, r, metrics) {
+	if err != representForShow(w, r, metrics, JSONFormat) {
 		handleErrorForShow(w, err)
 		return
 	}
@@ -50,11 +49,11 @@ func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helpers
 
-func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
+func findMetricsForShow(h *Handler, r *http.Request, format string) (*models.Metrics, error) {
 	var metrics models.Metrics
 
 	// Build metrics
-	if strings.Contains(r.Header.Get("content-type"), "application/json") {
+	if format == JSONFormat {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
 
@@ -76,7 +75,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	case "counter":
 		delta, err := h.storage.GetCounter(metrics.ID)
 		if err != nil {
-			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+			if format == JSONFormat {
 				zero := int64(0)
 				metrics.Delta = &zero
 			} else {
@@ -88,7 +87,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	case "gauge":
 		value, err := h.storage.GetGauge(metrics.ID)
 		if err != nil {
-			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+			if format == JSONFormat {
 				zero := float64(0)
 				metrics.Value = &zero
 			} else {
@@ -104,10 +103,10 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	return &metrics, nil
 }
 
-func representForShow(w http.ResponseWriter, r *http.Request, metrics *models.Metrics) error {
+func representForShow(w http.ResponseWriter, _ *http.Request, metrics *models.Metrics, format string) error {
 	var body []byte
 
-	if strings.Contains(r.Header.Get("content-type"), "application/json") {
+	if format == JSONFormat {
 		data, err := json.Marshal(metrics)
 		if err != nil {
 			return errors.New(serverError)

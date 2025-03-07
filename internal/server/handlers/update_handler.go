@@ -24,7 +24,7 @@ const (
 func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 
-	metrics, err := parseAndValidateMetricsForUpdate(h, r)
+	metrics, err := parseAndValidateMetricsForUpdate(h, r, TextFormat)
 	if err != nil {
 		handleErrorForUpdate(w, err)
 		return
@@ -35,7 +35,7 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representForUpdate(h, w, r, metrics) {
+	if err != representForUpdate(h, w, r, metrics, TextFormat) {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -53,7 +53,7 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Log.Info("===> CHECK UPDATE [WORKED]", zap.String("uri", headers))
 
-	metrics, err := parseAndValidateMetricsForUpdate(h, r)
+	metrics, err := parseAndValidateMetricsForUpdate(h, r, JSONFormat)
 	if err != nil {
 		handleErrorForUpdate(w, err)
 		return
@@ -64,7 +64,7 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representForUpdate(h, w, r, metrics) {
+	if err != representForUpdate(h, w, r, metrics, JSONFormat) {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -72,11 +72,11 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helpers
 
-func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metrics, error) {
+func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string) (*models.Metrics, error) {
 	var metricsValue string
 	metrics := models.Metrics{}
 
-	if strings.Contains(r.Header.Get("content-type"), "application/json") {
+	if format == JSONFormat {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
 		data := buf.Bytes()
@@ -108,7 +108,7 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metr
 	}
 
 	// Check value
-	if !strings.Contains(r.Header.Get("content-type"), "application/json") {
+	if format != JSONFormat {
 		metricsValue = chi.URLParam(r, "metricValue")
 
 		switch metrics.MType {
@@ -140,9 +140,9 @@ func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) erro
 	return nil
 }
 
-func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics) error {
-	if strings.Contains(r.Header.Get("content-type"), "application/json") {
-		return representForShow(w, r, metrics)
+func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics, contentType string) error {
+	if strings.Contains(r.Header.Get("content-type"), contentType) {
+		return representForShow(w, r, metrics, contentType)
 	}
 
 	w.WriteHeader(http.StatusOK)

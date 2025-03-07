@@ -11,8 +11,13 @@ import (
 )
 
 const (
+	// Errors
 	serverError      = "serverError"
 	invalidDataError = "invalidDataError"
+
+	// Formats
+	JSONFormat = "json"
+	TextFormat = "text"
 )
 
 type Handler struct {
