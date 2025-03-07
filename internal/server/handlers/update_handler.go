@@ -13,29 +13,29 @@ import (
 
 // POST /update/{metricType}/{metricName}/{metricValue}
 func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	metric, err := h.parseAndValidateMetric(r)
+	metrics, err := h.parseAndValidateMetricsForUpdate(r)
 	if err != nil {
-		h.handleError(w, err)
+		h.handleErrorForUpdate(w, err)
 		return
 	}
 
-	h.processMetric(w, metric)
+	h.processMetricsForUpdate(w, metrics)
 }
 
 // POST /update
 func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	metric, err := h.parseAndValidateMetric(r)
+	metrics, err := h.parseAndValidateMetricsForUpdate(r)
 	if err != nil {
-		h.handleError(w, err)
+		h.handleErrorForUpdate(w, err)
 		return
 	}
 
-	h.processMetric(w, metric)
+	h.processMetricsForUpdate(w, metrics)
 }
 
 // Helpers
 
-func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metrics, error) {
+func (h *Handler) parseAndValidateMetricsForUpdate(r *http.Request) (*models.Metrics, error) {
 	metrics := models.Metrics{}
 
 	metricType := chi.URLParam(r, "metricType")
@@ -75,7 +75,7 @@ func (h *Handler) parseAndValidateMetric(r *http.Request) (*models.Metrics, erro
 	return &metrics, nil
 }
 
-func (h *Handler) processMetric(w http.ResponseWriter, metrics *models.Metrics) {
+func (h *Handler) processMetricsForUpdate(w http.ResponseWriter, metrics *models.Metrics) {
 	err := h.service.MetricUpdateService(metrics)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func (h *Handler) processMetric(w http.ResponseWriter, metrics *models.Metrics) 
 	}
 }
 
-func (h *Handler) handleError(w http.ResponseWriter, err error) {
+func (h *Handler) handleErrorForUpdate(w http.ResponseWriter, err error) {
 	switch err.Error() {
 	case "typeError", "valueError":
 		w.WriteHeader(http.StatusBadRequest)

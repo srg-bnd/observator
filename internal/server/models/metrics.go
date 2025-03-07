@@ -1,6 +1,8 @@
 // Models (Metrics)
 package models
 
+import "strconv"
+
 type Metrics struct {
 	ID    string   `json:"id"`
 	MType string   `json:"type"`
@@ -62,4 +64,12 @@ func (m *Metrics) SetGauge(value float64) {
 
 func (m *Metrics) GetGauge() float64 {
 	return *m.Value
+}
+
+func (m *Metrics) GetCounterAsString() string {
+	return strconv.FormatInt(*m.Delta, 10)
+}
+
+func (m *Metrics) GetGaugeAsString() string {
+	return strconv.FormatFloat(*m.Value, 'f', -1, 64)
 }
