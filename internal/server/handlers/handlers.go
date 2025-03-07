@@ -1,4 +1,4 @@
-// Handlers & Router for HTTP server
+// Handlers & Router for server
 package handlers
 
 import (

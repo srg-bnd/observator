@@ -1,4 +1,4 @@
-// Middleware for HTTP server
+// Middleware for server
 package middleware
 
 import "net/http"

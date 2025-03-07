@@ -1,4 +1,4 @@
-// Singleton logger
+// Singleton logger for server
 package logger
 
 import (

@@ -1,4 +1,4 @@
-// Services
+// Services for server
 package services
 
 import (
