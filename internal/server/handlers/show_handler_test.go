@@ -60,12 +60,13 @@ func TestShowAsJSONHandler(t *testing.T) {
 	wantGaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
 
 	testCases := []struct {
-		name   string
-		path   string
-		method string
-		status int
-		body   string
-		want   string
+		name        string
+		path        string
+		method      string
+		contentType string
+		status      int
+		body        string
+		want        string
 	}{
 		{name: "correct counter", path: "/value", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(wantCounterMetrics)},
 		{name: "correct gauge", path: "/value", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(wantGaugeMetrics)},
@@ -75,7 +76,7 @@ func TestShowAsJSONHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body)
+			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body, tc.contentType)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			assert.Equal(t, tc.want, body)

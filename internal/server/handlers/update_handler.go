@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
@@ -127,7 +126,7 @@ func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) erro
 }
 
 func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics, contentType string) error {
-	if strings.Contains(r.Header.Get("content-type"), contentType) {
+	if contentType == JSONFormat {
 		return representForShow(w, r, metrics, contentType)
 	}
 

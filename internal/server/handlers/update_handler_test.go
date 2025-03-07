@@ -53,21 +53,23 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 	wantExistCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &existCounter})
 
 	testCases := []struct {
-		name   string
-		path   string
-		method string
-		status int
-		body   string
-		want   string
+		name        string
+		path        string
+		method      string
+		contentType string
+		status      int
+		body        string
+		want        string
 	}{
 		{name: "correct counter", path: "/update", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(counterMetrics)},
 		{name: "exist counter", path: "/update", method: "POST", status: http.StatusOK, body: string(existCounterMetrics), want: string(wantExistCounterMetrics)},
 		{name: "correct gauge", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics)},
+		{name: "correct with plain_text", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics), contentType: "plain/text"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body)
+			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body, tc.contentType)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			assert.Equal(t, tc.want, body)

@@ -66,11 +66,15 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 	return resp, string(respBody)
 }
 
-func testRequestAsJSON(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+func testRequestAsJSON(t *testing.T, ts *httptest.Server, method, path string, body string, contentType string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 	require.NoError(t, err)
 
-	req.Header.Add("content-type", "application/json")
+	if contentType != "" {
+		req.Header.Add("content-type", contentType)
+	} else {
+		req.Header.Add("content-type", "application/json")
+	}
 
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)
