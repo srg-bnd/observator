@@ -82,3 +82,15 @@ func TestShowAsJSONHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestFindMetricsForShow(t *testing.T) {
+	t.Logf("TODO")
+}
+
+func TestRepresentMetricsForShow(t *testing.T) {
+	t.Logf("TODO")
+}
+
+func TestHandleErrorForShow(t *testing.T) {
+	t.Logf("TODO")
+}
