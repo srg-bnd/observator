@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	serverError = "serverError"
+	serverError      = "serverError"
+	invalidDataError = "invalidDataError"
 )
 
 type Handler struct {
@@ -45,5 +46,8 @@ func handleError(w http.ResponseWriter, err error) {
 	switch err.Error() {
 	case serverError:
 		w.WriteHeader(http.StatusInternalServerError)
+	case invalidDataError:
+		w.WriteHeader(http.StatusBadRequest)
 	}
+
 }

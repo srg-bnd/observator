@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	invalidDataError = "invalidDataError"
-	notExistError    = "notExistError"
+	notExistError = "notExistError"
 )
 
 // GET /value/{metricType}/{metricName}

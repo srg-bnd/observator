@@ -14,6 +14,8 @@ func NewMetrics() *Metrics {
 	return &Metrics{}
 }
 
+var MetricsMTypes = []string{"counter", "gauge"}
+
 var TrackedMetrics = map[string][]string{
 	"counter": {
 		"PollCount",

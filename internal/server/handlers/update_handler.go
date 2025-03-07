@@ -2,19 +2,20 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
 const (
-	typeError  = "typeError"
-	valueError = "valueError"
-	nameError  = "nameError"
+	invalidNameError = "invalidNameError"
 )
 
 // POST /update/{metricType}/{metricName}/{metricValue}
@@ -32,7 +33,7 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representForUpdate(h, w, r) {
+	if err != representForUpdate(h, w, r, metrics) {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -53,7 +54,7 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representForUpdate(h, w, r) {
+	if err != representForUpdate(h, w, r, metrics) {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -62,40 +63,55 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 // Helpers
 
 func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metrics, error) {
+	var metricsValue string
 	metrics := models.Metrics{}
 
-	metricType := chi.URLParam(r, "metricType")
-	metricName := chi.URLParam(r, "metricName")
-	metricValue := chi.URLParam(r, "metricValue")
+	if strings.Contains(r.Header.Get("content-type"), "application/json") {
+		var buf bytes.Buffer
+		_, err := buf.ReadFrom(r.Body)
+		if err != nil {
+			return &metrics, errors.New(invalidDataError)
+		}
+
+		// TODO: use `json.NewDecoder(req.Body).Decode`
+		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+			return &metrics, errors.New(invalidDataError)
+		}
+	} else {
+		metrics.MType = chi.URLParam(r, "metricType")
+		metrics.ID = chi.URLParam(r, "metricName")
+	}
 
 	// Check type
-	if !slices.Contains([]string{"counter", "gauge"}, metricType) {
-		return nil, errors.New("typeError")
+	if !slices.Contains(models.MetricsMTypes, metrics.MType) {
+		return nil, errors.New(invalidDataError)
 	}
-	metrics.MType = metricType
 
 	// Check name
-	if metricName == "" {
-		return nil, errors.New("nameError")
+	if metrics.ID == "" {
+		return nil, errors.New(invalidNameError)
 	}
-	metrics.ID = metricName
 
 	// Check value
-	switch metrics.MType {
-	case "counter":
-		value, err := strconv.ParseInt(metricValue, 10, 64)
-		if err != nil {
-			return nil, errors.New("valueError")
-		}
+	if !strings.Contains(r.Header.Get("content-type"), "application/json") {
+		metricsValue = chi.URLParam(r, "metricValue")
 
-		metrics.SetCounter(value)
-	case "gauge":
-		value, err := strconv.ParseFloat(metricValue, 64)
-		if err != nil {
-			return nil, errors.New("valueError")
-		}
+		switch metrics.MType {
+		case "counter":
+			value, err := strconv.ParseInt(metricsValue, 10, 64)
+			if err != nil {
+				return nil, errors.New(invalidDataError)
+			}
 
-		metrics.SetGauge(value)
+			metrics.SetCounter(value)
+		case "gauge":
+			value, err := strconv.ParseFloat(metricsValue, 64)
+			if err != nil {
+				return nil, errors.New(invalidDataError)
+			}
+
+			metrics.SetGauge(value)
+		}
 	}
 
 	return &metrics, nil
@@ -109,17 +125,18 @@ func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) erro
 	return nil
 }
 
-func representForUpdate(_ *Handler, w http.ResponseWriter, _ *http.Request) error {
-	w.WriteHeader(http.StatusOK)
+func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics) error {
+	if strings.Contains(r.Header.Get("content-type"), "application/json") {
+		return representForShow(w, r, metrics)
+	}
 
+	w.WriteHeader(http.StatusOK)
 	return nil
 }
 
 func handleErrorForUpdate(w http.ResponseWriter, err error) {
 	switch err.Error() {
-	case typeError, valueError:
-		w.WriteHeader(http.StatusBadRequest)
-	case nameError:
+	case invalidNameError:
 		w.WriteHeader(http.StatusNotFound)
 	default:
 		handleError(w, err)
