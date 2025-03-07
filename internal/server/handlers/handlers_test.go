@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi"
+	"github.com/srg-bnd/observator/internal/agent/models"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -102,6 +105,48 @@ func TestShowMetricHandler(t *testing.T) {
 	}
 }
 
+func TestValueHandler(t *testing.T) {
+	storage := storage.NewMemStorage()
+
+	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	defer ts.Close()
+
+	storage.SetCounter("correctKey", 1)
+	storage.SetGauge("correctKey", 1)
+
+	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter"})
+	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge"})
+
+	counter, _ := storage.GetCounter("correctKey")
+	gauge, _ := storage.GetGauge("correctKey")
+
+	wantCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
+	wantGaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
+
+	testCases := []struct {
+		name   string
+		path   string
+		method string
+		status int
+		body   string
+		want   string
+	}{
+		{name: "correct counter", path: "/value", method: "GET", status: http.StatusOK, body: string(counterMetrics), want: string(wantCounterMetrics)},
+		{name: "correct gauge", path: "/value", method: "GET", status: http.StatusOK, body: string(gaugeMetrics), want: string(wantGaugeMetrics)},
+		{name: "incorrect values", path: "/value", method: "GET", status: http.StatusNotFound, body: `{"ID": "unknown", "MType": "unknown"}`, want: ""},
+		{name: "empty body", path: "/value", method: "GET", status: http.StatusBadRequest, body: "", want: "unexpected end of JSON input\n"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resp, body := testJSONRequest(t, ts, tc.method, tc.path, tc.body)
+			defer resp.Body.Close()
+			assert.Equal(t, tc.status, resp.StatusCode)
+			assert.Equal(t, tc.want, body)
+		})
+	}
+}
+
 func TestIndexHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
 	handler := NewHandler(storage)
@@ -131,6 +176,22 @@ func TestIndexHandler(t *testing.T) {
 func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, nil)
 	require.NoError(t, err)
+
+	resp, err := ts.Client().Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
+}
+
+func testJSONRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	require.NoError(t, err)
+
+	req.Header.Add("content-type", "application/json")
 
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)

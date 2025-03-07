@@ -2,6 +2,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,6 +33,8 @@ func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", logger.RequestLogger(h.UpdateMetricHandler))
+	r.Post("/update", logger.RequestLogger(h.UpdateHandler))
+	r.Get("/value", logger.RequestLogger(h.ValueHandler))
 	r.Get("/value/{metricType}/{metricName}", logger.RequestLogger(h.ShowMetricHandler))
 	r.Get("/", logger.RequestLogger(h.IndexHandler))
 
@@ -72,6 +76,67 @@ func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(strconv.FormatFloat(value, 'f', -1, 64)))
+	default:
+		{
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) ValueHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	var metrics models.Metrics
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: use `json.NewDecoder(req.Body).Decode`
+	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	switch metrics.MType {
+	case "counter":
+		value, err := h.storage.GetCounter(metrics.ID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		metrics.Delta = &value
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(resp)
+	case "gauge":
+		value, err := h.storage.GetGauge(metrics.ID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		metrics.Value = &value
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(resp)
 	default:
 		{
 			w.WriteHeader(http.StatusNotFound)
