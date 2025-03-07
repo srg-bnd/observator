@@ -44,9 +44,13 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 
 	counter := int64(1)
 	gauge := float64(1.0)
+	existCounter := int64(2)
 
 	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
 	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
+	existCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &counter})
+	storage.SetCounter("existKey", counter)
+	wantExistCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &existCounter})
 
 	testCases := []struct {
 		name   string
@@ -57,6 +61,7 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 		want   string
 	}{
 		{name: "correct counter", path: "/update", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(counterMetrics)},
+		{name: "exist counter", path: "/update", method: "POST", status: http.StatusOK, body: string(existCounterMetrics), want: string(wantExistCounterMetrics)},
 		{name: "correct gauge", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics)},
 	}
 
