@@ -22,7 +22,7 @@ const (
 func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/plain; charset=utf-8")
 
-	metrics, err := findMetricsForShow(h, w, r)
+	metrics, err := findMetricsForShow(h, r)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
@@ -38,7 +38,7 @@ func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	metrics, err := findMetricsForShow(h, w, r)
+	metrics, err := findMetricsForShow(h, r)
 	if err != nil {
 		handleErrorForShow(w, err)
 		return
@@ -52,21 +52,21 @@ func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helpers
 
-func findMetricsForShow(h *Handler, w http.ResponseWriter, r *http.Request) (*models.Metrics, error) {
+func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	var metrics models.Metrics
 
 	// Build metrics
 	if strings.Contains(r.Header.Get("content-type"), "application/json") {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
-		if err != nil {
-			return &metrics, errors.New(invalidDataError)
-		}
-
 		data := buf.Bytes()
 		logger.Log.Info("got incoming HTTP request [BODY]",
 			zap.String("uri", string(data)),
 		)
+
+		if err != nil {
+			return &metrics, errors.New(invalidDataError)
+		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
 		if err = json.Unmarshal(data, &metrics); err != nil {
