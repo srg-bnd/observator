@@ -36,7 +36,7 @@ func (c *Client) SendMetric(metrics *models.Metrics) {
 
 	_, err = c.client.R().SetBody(data).
 		SetHeader("Content-Type", "plain/text").
-		Post(c.baseURL + "/update/{metricType}/{metricName}/{metricValue}")
+		Post(c.baseURL + "/update")
 
 	if err != nil {
 		// log.Println(err)
