@@ -76,6 +76,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 		delta, err := h.storage.GetCounter(metrics.ID)
 		if err != nil {
 			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+				metrics.Delta = nil
 			} else {
 				return &metrics, errors.New(notExistError)
 			}
@@ -86,6 +87,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 		value, err := h.storage.GetGauge(metrics.ID)
 		if err != nil {
 			if strings.Contains(r.Header.Get("content-type"), "application/json") {
+				metrics.Value = nil
 			} else {
 				return &metrics, errors.New(notExistError)
 			}
