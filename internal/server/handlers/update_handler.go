@@ -84,12 +84,12 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metr
 
 	// Check type
 	if !slices.Contains(models.MetricsMTypes, metrics.MType) {
-		return nil, errors.New(invalidDataError)
+		return &metrics, errors.New(invalidDataError)
 	}
 
 	// Check name
 	if metrics.ID == "" {
-		return nil, errors.New(invalidNameError)
+		return &metrics, errors.New(invalidNameError)
 	}
 
 	// Check value

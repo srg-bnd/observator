@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +37,37 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestUpdateAsJSONHandler(t *testing.T) {
-	t.Logf("TODO")
+	storage := storage.NewMemStorage()
+
+	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	defer ts.Close()
+
+	counter := int64(1)
+	gauge := float64(1.0)
+
+	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
+	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
+
+	testCases := []struct {
+		name   string
+		path   string
+		method string
+		status int
+		body   string
+		want   string
+	}{
+		{name: "correct counter", path: "/update", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(counterMetrics)},
+		{name: "correct gauge", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body)
+			defer resp.Body.Close()
+			assert.Equal(t, tc.status, resp.StatusCode)
+			assert.Equal(t, tc.want, body)
+		})
+	}
 }
 
 func TestParseAndValidateMetricsForUpdate(t *testing.T) {
