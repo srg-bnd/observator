@@ -45,7 +45,13 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	logger.Log.Info("===> CHECK UPDATE [WORKED]")
+	headers := ""
+	for name, values := range r.Header {
+		for _, value := range values {
+			headers += name + ": " + value + ", "
+		}
+	}
+	logger.Log.Info("===> CHECK UPDATE [WORKED]", zap.String("uri", headers))
 
 	metrics, err := parseAndValidateMetricsForUpdate(h, r)
 	if err != nil {
