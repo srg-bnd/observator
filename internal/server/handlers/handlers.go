@@ -2,10 +2,16 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
+)
+
+const (
+	serverError = "serverError"
 )
 
 type Handler struct {
@@ -32,4 +38,12 @@ func (h *Handler) GetRouter() chi.Router {
 	r.Post("/update", logger.RequestLogger(h.UpdateAsJSONHandler))
 
 	return r
+}
+
+// Handle errors
+func handleError(w http.ResponseWriter, err error) {
+	switch err.Error() {
+	case serverError:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

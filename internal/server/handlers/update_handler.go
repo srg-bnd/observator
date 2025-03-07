@@ -11,31 +11,57 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
+const (
+	typeError  = "typeError"
+	valueError = "valueError"
+	nameError  = "nameError"
+)
+
 // POST /update/{metricType}/{metricName}/{metricValue}
 func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	metrics, err := h.parseAndValidateMetricsForUpdate(r)
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
+
+	metrics, err := parseAndValidateMetricsForUpdate(h, r)
 	if err != nil {
-		h.handleErrorForUpdate(w, err)
+		handleErrorForUpdate(w, err)
 		return
 	}
 
-	h.processMetricsForUpdate(w, metrics)
+	if err != processForUpdate(h, r, metrics) {
+		handleErrorForUpdate(w, err)
+		return
+	}
+
+	if err != representForUpdate(h, w, r) {
+		handleErrorForUpdate(w, err)
+		return
+	}
 }
 
 // POST /update
 func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	metrics, err := h.parseAndValidateMetricsForUpdate(r)
+	w.Header().Set("content-type", "application/json")
+
+	metrics, err := parseAndValidateMetricsForUpdate(h, r)
 	if err != nil {
-		h.handleErrorForUpdate(w, err)
+		handleErrorForUpdate(w, err)
 		return
 	}
 
-	h.processMetricsForUpdate(w, metrics)
+	if err != processForUpdate(h, r, metrics) {
+		handleErrorForUpdate(w, err)
+		return
+	}
+
+	if err != representForUpdate(h, w, r) {
+		handleErrorForUpdate(w, err)
+		return
+	}
 }
 
 // Helpers
 
-func (h *Handler) parseAndValidateMetricsForUpdate(r *http.Request) (*models.Metrics, error) {
+func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request) (*models.Metrics, error) {
 	metrics := models.Metrics{}
 
 	metricType := chi.URLParam(r, "metricType")
@@ -75,22 +101,27 @@ func (h *Handler) parseAndValidateMetricsForUpdate(r *http.Request) (*models.Met
 	return &metrics, nil
 }
 
-func (h *Handler) processMetricsForUpdate(w http.ResponseWriter, metrics *models.Metrics) {
-	err := h.service.MetricUpdateService(metrics)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
+func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) error {
+	if err := h.service.MetricUpdateService(metrics); err != nil {
+		return errors.New(serverError)
 	}
+
+	return nil
 }
 
-func (h *Handler) handleErrorForUpdate(w http.ResponseWriter, err error) {
+func representForUpdate(_ *Handler, w http.ResponseWriter, _ *http.Request) error {
+	w.WriteHeader(http.StatusOK)
+
+	return nil
+}
+
+func handleErrorForUpdate(w http.ResponseWriter, err error) {
 	switch err.Error() {
-	case "typeError", "valueError":
+	case typeError, valueError:
 		w.WriteHeader(http.StatusBadRequest)
-	case "nameError":
+	case nameError:
 		w.WriteHeader(http.StatusNotFound)
+	default:
+		handleError(w, err)
 	}
 }

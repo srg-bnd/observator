@@ -17,7 +17,7 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representMetricsByMTypeForIndex(w, r, metricsByMType) {
+	if err != representForIndex(w, r, metricsByMType) {
 		handleErrorForIndex(w, err)
 		return
 	}
@@ -47,7 +47,7 @@ func getMetricsByMTypeForIndex(h *Handler, _ *http.Request) (map[string][]models
 	return metricsByMType, nil
 }
 
-func representMetricsByMTypeForIndex(w http.ResponseWriter, _ *http.Request, metricsByMType map[string][]models.Metrics) error {
+func representForIndex(w http.ResponseWriter, _ *http.Request, metricsByMType map[string][]models.Metrics) error {
 	var body string
 
 	for MType, allMetrics := range metricsByMType {
@@ -65,5 +65,5 @@ func representMetricsByMTypeForIndex(w http.ResponseWriter, _ *http.Request, met
 }
 
 func handleErrorForIndex(w http.ResponseWriter, err error) {
-	// TODO
+	handleError(w, err)
 }

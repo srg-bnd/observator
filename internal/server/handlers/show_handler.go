@@ -15,7 +15,6 @@ import (
 const (
 	invalidDataError = "invalidDataError"
 	notExistError    = "notExistError"
-	serverError      = "serverError"
 )
 
 // GET /value/{metricType}/{metricName}
@@ -28,7 +27,7 @@ func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representMetricsForShow(w, r, metrics) {
+	if err != representForShow(w, r, metrics) {
 		handleErrorForShow(w, err)
 		return
 	}
@@ -44,7 +43,7 @@ func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != representMetricsForShow(w, r, metrics) {
+	if err != representForShow(w, r, metrics) {
 		handleErrorForShow(w, err)
 		return
 	}
@@ -93,7 +92,7 @@ func findMetricsForShow(h *Handler, r *http.Request) (*models.Metrics, error) {
 	return &metrics, nil
 }
 
-func representMetricsForShow(w http.ResponseWriter, r *http.Request, metrics *models.Metrics) error {
+func representForShow(w http.ResponseWriter, r *http.Request, metrics *models.Metrics) error {
 	var body []byte
 
 	if strings.Contains(r.Header.Get("content-type"), "application/json") {
@@ -123,7 +122,7 @@ func handleErrorForShow(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusBadRequest)
 	case notExistError:
 		w.WriteHeader(http.StatusNotFound)
-	case serverError:
-		w.WriteHeader(http.StatusInternalServerError)
+	default:
+		handleError(w, err)
 	}
 }
