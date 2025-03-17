@@ -6,6 +6,6 @@ func TestUse(t *testing.T) {
 	t.Logf("TODO")
 }
 
-func TestCheckMethodPost(t *testing.T) {
+func TestCheckMethodPostMiddleware(t *testing.T) {
 	t.Logf("TODO")
 }

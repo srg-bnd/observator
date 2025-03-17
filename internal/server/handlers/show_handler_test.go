@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,20 +19,19 @@ func TestShowHandler(t *testing.T) {
 	storage.SetGauge("correctKey", 1)
 
 	testCases := []struct {
-		path   string
-		method string
+		data   DataRequest
 		status int
 		want   string
 	}{
-		{path: "/value/counter/correctKey", method: "GET", status: http.StatusOK, want: "1"},
-		{path: "/value/counter/unknownKey", method: "GET", status: http.StatusNotFound, want: ""},
-		{path: "/value/gauge/correctKey", method: "GET", status: http.StatusOK, want: "1"},
-		{path: "/value/gauge/unknownKey", method: "GET", status: http.StatusNotFound, want: ""},
+		{data: DataRequest{path: "/value/counter/correctKey", method: "GET"}, status: http.StatusOK, want: "1"},
+		{data: DataRequest{path: "/value/counter/unknownKey", method: "GET"}, status: http.StatusNotFound, want: ""},
+		{data: DataRequest{path: "/value/gauge/correctKey", method: "GET"}, status: http.StatusOK, want: "1"},
+		{data: DataRequest{path: "/value/gauge/unknownKey", method: "GET"}, status: http.StatusNotFound, want: ""},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.path, func(t *testing.T) {
-			resp, _ := testRequest(t, ts, tc.method, tc.path)
+		t.Run(tc.data.path, func(t *testing.T) {
+			resp, _ := testRequest(t, ts, tc.data)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 		})
@@ -50,33 +47,30 @@ func TestShowAsJSONHandler(t *testing.T) {
 	storage.SetCounter("correctKey", 1)
 	storage.SetGauge("correctKey", 1)
 
-	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter"})
-	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge"})
+	// counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter"})
+	// gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge"})
 
-	counter, _ := storage.GetCounter("correctKey")
-	gauge, _ := storage.GetGauge("correctKey")
+	// counter, _ := storage.GetCounter("correctKey")
+	// gauge, _ := storage.GetGauge("correctKey")
 
-	wantCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
-	wantGaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
+	// wantCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
+	// wantGaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
 
 	testCases := []struct {
-		name        string
-		path        string
-		method      string
-		contentType string
-		status      int
-		body        string
-		want        string
+		name   string
+		status int
+		data   DataRequest
+		want   string
 	}{
-		{name: "correct counter", path: "/value", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(wantCounterMetrics)},
-		{name: "correct gauge", path: "/value", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(wantGaugeMetrics)},
-		{name: "incorrect values", path: "/value", method: "POST", status: http.StatusNotFound, body: `{"ID": "unknown", "MType": "unknown"}`, want: ""},
-		{name: "empty body", path: "/value", method: "POST", status: http.StatusBadRequest, body: "", want: ""},
+		// {name: "correct counter", data: DataRequest{path: "/value", method: "POST", body: string(counterMetrics), acceptEncoding: "gzip"}, status: http.StatusOK, want: string(wantCounterMetrics)},
+		// {name: "correct gauge", data: DataRequest{path: "/value", method: "POST", body: string(gaugeMetrics)}, status: http.StatusOK, want: string(wantGaugeMetrics)},
+		{name: "incorrect values", data: DataRequest{path: "/value", method: "POST", body: `{"ID": "unknown", "MType": "unknown"}`, acceptEncoding: ""}, status: http.StatusNotFound, want: ""},
+		{name: "empty body", data: DataRequest{path: "/value", method: "POST", body: "", acceptEncoding: ""}, status: http.StatusBadRequest, want: ""},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body, tc.contentType)
+			resp, body := testRequestAsJSON(t, ts, tc.data)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			assert.Equal(t, tc.want, body)

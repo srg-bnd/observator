@@ -69,9 +69,16 @@ func (m *Metrics) GetGauge() float64 {
 }
 
 func (m *Metrics) GetCounterAsString() string {
+	if m.Delta == nil {
+		return ""
+	}
 	return strconv.FormatInt(*m.Delta, 10)
 }
 
 func (m *Metrics) GetGaugeAsString() string {
+	if m.Value == nil {
+		return ""
+	}
+
 	return strconv.FormatFloat(*m.Value, 'f', -1, 64)
 }

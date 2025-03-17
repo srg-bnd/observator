@@ -54,7 +54,7 @@ func Initialize(level string) error {
 }
 
 // RequestLogger is a middleware logger for incoming HTTP requests.
-func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
+func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -67,7 +67,7 @@ func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
 			responseData:   responseData,
 		}
 
-		h(&lw, r)
+		next.ServeHTTP(&lw, r)
 		duration := time.Since(start)
 
 		Log.Info("got incoming HTTP request",

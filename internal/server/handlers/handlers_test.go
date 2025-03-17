@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"compress/gzip"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type DataRequest struct {
+	method, path, body, contentType, acceptEncoding, contentEncoding string
+}
 
 func TestNewHandler(t *testing.T) {
 	storage := storage.NewMemStorage()
@@ -56,9 +62,21 @@ func TestSetContentType(t *testing.T) {
 
 // Helpers
 
-func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {
-	req, err := http.NewRequest(method, ts.URL+path, nil)
+func testRequest(t *testing.T, ts *httptest.Server, data DataRequest) (*http.Response, string) {
+	req, err := http.NewRequest(data.method, ts.URL+data.path, nil)
 	require.NoError(t, err)
+
+	if data.acceptEncoding != "" {
+		req.Header.Add("Accept-Encoding", data.acceptEncoding)
+	} else {
+		req.Header.Set("Accept-Encoding", "")
+	}
+
+	if data.contentEncoding != "" {
+		req.Header.Add("Content-Encoding", data.contentEncoding)
+	} else {
+		req.Header.Set("Content-Encoding", "")
+	}
 
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)
@@ -70,14 +88,41 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 	return resp, string(respBody)
 }
 
-func testRequestAsJSON(t *testing.T, ts *httptest.Server, method, path string, body string, contentType string) (*http.Response, string) {
-	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+func testRequestAsJSON(t *testing.T, ts *httptest.Server, data DataRequest) (*http.Response, string) {
+	var body io.Reader
+
+	if data.contentEncoding == "gzip" {
+		// Compress if need
+		buf := bytes.NewBuffer(nil)
+		zb := gzip.NewWriter(buf)
+		_, err := zb.Write([]byte(data.body))
+		require.NoError(t, err)
+		err = zb.Close()
+		require.NoError(t, err)
+		body = buf
+	} else {
+		body = strings.NewReader(data.body)
+	}
+
+	req, err := http.NewRequest(data.method, ts.URL+data.path, body)
 	require.NoError(t, err)
 
-	if contentType != "" {
-		req.Header.Add("content-type", contentType)
+	if data.contentType != "" {
+		req.Header.Add("Content-Type", data.contentType)
 	} else {
-		req.Header.Add("content-type", "application/json")
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	if data.acceptEncoding != "" {
+		req.Header.Add("Accept-Encoding", data.acceptEncoding)
+	} else {
+		req.Header.Set("Accept-Encoding", "")
+	}
+
+	if data.contentEncoding != "" {
+		req.Header.Add("Content-Encoding", data.contentEncoding)
+	} else {
+		req.Header.Set("Content-Encoding", "")
 	}
 
 	resp, err := ts.Client().Do(req)
@@ -87,5 +132,19 @@ func testRequestAsJSON(t *testing.T, ts *httptest.Server, method, path string, b
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	return resp, string(respBody)
+	var bodyAsString []byte
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		// Decompress if need
+		zb, _ := gzip.NewReader(bytes.NewReader(respBody))
+		var b bytes.Buffer
+		_, err := b.ReadFrom(zb)
+		if err != nil {
+			require.NoError(t, err)
+		}
+		bodyAsString = b.Bytes()
+	} else {
+		bodyAsString = respBody
+	}
+
+	return resp, string(bodyAsString)
 }

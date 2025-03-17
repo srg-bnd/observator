@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/logger"
+	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
@@ -38,13 +39,14 @@ func NewHandler(storage storage.Repositories) *Handler {
 func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", logger.RequestLogger(h.IndexHandler))
-	r.Get("/value/{metricType}/{metricName}", logger.RequestLogger(h.ShowHandler))
-	r.Post("/value", logger.RequestLogger(h.ShowAsJSONHandler))
-	r.Post("/value/", logger.RequestLogger(h.ShowAsJSONHandler))
-	r.Post("/update/{metricType}/{metricName}/{metricValue}", logger.RequestLogger(h.UpdateHandler))
-	r.Post("/update", logger.RequestLogger(h.UpdateAsJSONHandler))
-	r.Post("/update/", logger.RequestLogger(h.UpdateAsJSONHandler))
+	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
+	r.Get("/", h.IndexHandler)
+	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
+	r.Post("/value", h.ShowAsJSONHandler)
+	r.Post("/value/", h.ShowAsJSONHandler)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
+	r.Post("/update", h.UpdateAsJSONHandler)
+	r.Post("/update/", h.UpdateAsJSONHandler)
 
 	return r
 }
@@ -53,11 +55,11 @@ func (h *Handler) GetRouter() chi.Router {
 func setContentType(w http.ResponseWriter, format string) {
 	switch format {
 	case JSONFormat:
-		w.Header().Set("content-type", "application/json")
+		w.Header().Set("Content-Type", "application/json")
 	case HTMLFormat:
-		w.Header().Set("content-type", "text/html; charset=utf-8")
+		w.Header().Set("Content-Type", "text/html")
 	case TextFormat:
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "text/plain")
 	}
 }
 

@@ -40,7 +40,7 @@ func getMetricsByMTypeForIndex(h *Handler, _ *http.Request) (map[string][]models
 	for _, ID := range models.TrackedMetrics["gauge"] {
 		gauge, err := h.storage.GetGauge(ID)
 		if err == nil {
-			metricsByMType["counter"] = append(metricsByMType["counter"], models.Metrics{MType: "counter", ID: ID, Value: &gauge})
+			metricsByMType["gauge"] = append(metricsByMType["gauge"], models.Metrics{MType: "gauge", ID: ID, Value: &gauge})
 		}
 	}
 
@@ -53,7 +53,11 @@ func representForIndex(w http.ResponseWriter, _ *http.Request, metricsByMType ma
 	for MType, allMetrics := range metricsByMType {
 		body += "<h1>" + MType + ":</h1><ul>"
 		for _, metrics := range allMetrics {
-			body += "<li>" + metrics.ID + ": " + metrics.GetCounterAsString() + "</li>"
+			if MType == "gauge" {
+				body += "<li>" + metrics.ID + ": " + metrics.GetGaugeAsString() + "</li>"
+			} else {
+				body += "<li>" + metrics.ID + ": " + metrics.GetCounterAsString() + "</li>"
+			}
 		}
 		body += "</ul>"
 	}

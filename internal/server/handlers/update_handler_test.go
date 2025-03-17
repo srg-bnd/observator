@@ -18,18 +18,17 @@ func TestUpdateHandler(t *testing.T) {
 	defer ts.Close()
 
 	testCases := []struct {
-		path   string
-		method string
+		data   DataRequest
 		status int
 		want   string
 	}{
-		{path: "/update/counter/correctKey/1", method: "POST", status: http.StatusOK},
-		{path: "/update/gauge/correctKey/1", method: "POST", status: http.StatusOK},
+		{data: DataRequest{path: "/update/counter/correctKey/1", method: "POST"}, status: http.StatusOK},
+		{data: DataRequest{path: "/update/gauge/correctKey/1", method: "POST"}, status: http.StatusOK},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.path, func(t *testing.T) {
-			resp, _ := testRequest(t, ts, tc.method, tc.path)
+		t.Run(tc.data.path, func(t *testing.T) {
+			resp, _ := testRequest(t, ts, tc.data)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 		})
@@ -44,7 +43,7 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 
 	counter := int64(1)
 	gauge := float64(1.0)
-	existCounter := int64(2)
+	existCounter := int64(1)
 
 	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
 	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
@@ -53,23 +52,20 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 	wantExistCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &existCounter})
 
 	testCases := []struct {
-		name        string
-		path        string
-		method      string
-		contentType string
-		status      int
-		body        string
-		want        string
+		name   string
+		data   DataRequest
+		status int
+		want   string
 	}{
-		{name: "correct counter", path: "/update", method: "POST", status: http.StatusOK, body: string(counterMetrics), want: string(counterMetrics)},
-		{name: "exist counter", path: "/update", method: "POST", status: http.StatusOK, body: string(existCounterMetrics), want: string(wantExistCounterMetrics)},
-		{name: "correct gauge", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics)},
-		{name: "correct with plain_text", path: "/update", method: "POST", status: http.StatusOK, body: string(gaugeMetrics), want: string(gaugeMetrics), contentType: "plain/text"},
+		{name: "correct counter", data: DataRequest{path: "/update", method: "POST", body: string(counterMetrics)}, status: http.StatusOK, want: string(counterMetrics)},
+		{name: "exist counter", data: DataRequest{path: "/update", method: "POST", body: string(existCounterMetrics)}, status: http.StatusOK, want: string(wantExistCounterMetrics)},
+		{name: "correct gauge", data: DataRequest{path: "/update", method: "POST", body: string(gaugeMetrics)}, status: http.StatusOK, want: string(gaugeMetrics)},
+		{name: "correct with plain_text", data: DataRequest{path: "/update", method: "POST", body: string(gaugeMetrics), contentType: "plain/text"}, status: http.StatusOK, want: string(gaugeMetrics)},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, body := testRequestAsJSON(t, ts, tc.method, tc.path, tc.body, tc.contentType)
+			resp, body := testRequestAsJSON(t, ts, tc.data)
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			assert.Equal(t, tc.want, body)

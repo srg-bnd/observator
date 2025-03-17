@@ -41,7 +41,7 @@ func (mStore *MemStorage) GetGauge(key string) (float64, error) {
 
 // Change counter by key
 func (mStore *MemStorage) SetCounter(key string, value int64) error {
-	mStore.counters[key] += counter(value)
+	mStore.counters[key] = counter(value)
 	return nil
 }
 
