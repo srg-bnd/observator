@@ -36,7 +36,6 @@ func NewMemStorage(fileStoragePath string, storeInterval int, restore bool) *Mem
 		flag := os.O_RDWR | os.O_CREATE
 		if !restore {
 			flag = os.O_RDWR | os.O_CREATE | os.O_TRUNC
-		} else {
 		}
 
 		fileStorage, err = os.OpenFile(fileStoragePath, flag, 0666)
@@ -160,7 +159,8 @@ func (mStore *MemStorage) SaveAll() error {
 	}
 
 	for name, value := range mStore.gauges {
-		_, err := mStore.fileStorage.Write([]byte(fmt.Sprintf("gauge,%s,%f\n", name, value)))
+
+		_, err := mStore.fileStorage.Write([]byte(fmt.Sprintf("gauge,%s,%s\n", name, strconv.FormatFloat(float64(value), 'f', -1, 64))))
 		if err != nil {
 			log.Fatal(err)
 		}
