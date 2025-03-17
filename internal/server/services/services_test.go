@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewService(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 	service := NewService(storage)
 	assert.IsType(t, service, &Service{})
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestMetricUpdateServiceForCounter(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 	service := NewService(storage)
 	metrics := models.NewMetrics()
 	metrics.MType = "counter"
@@ -23,7 +23,7 @@ func TestMetricUpdateServiceForCounter(t *testing.T) {
 }
 
 func TestMetricUpdateServiceForGauge(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 	service := NewService(storage)
 	metrics := models.NewMetrics()
 	metrics.MType = "gauge"

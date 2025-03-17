@@ -22,7 +22,7 @@ type DataRequest struct {
 }
 
 func TestNewHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 	handler := NewHandler(storage)
 	assert.IsType(t, handler, &Handler{})
 }

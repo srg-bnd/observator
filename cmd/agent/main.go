@@ -13,7 +13,8 @@ type App struct {
 }
 
 func NewApp() *App {
-	storage := storage.NewMemStorage()
+	// HACK
+	storage := storage.NewMemStorage("", 0, false)
 	return &App{
 		agent: agent.NewAgent(storage, appConfigs.serverAddr),
 	}

@@ -1,7 +1,9 @@
 // Models (Metrics)
 package models
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type Metrics struct {
 	ID    string   `json:"id"`

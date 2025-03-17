@@ -12,7 +12,7 @@ import (
 )
 
 func TestUpdateHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 
 	ts := httptest.NewServer(NewHandler(storage).GetRouter())
 	defer ts.Close()
@@ -36,7 +36,7 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestUpdateAsJSONHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 
 	ts := httptest.NewServer(NewHandler(storage).GetRouter())
 	defer ts.Close()

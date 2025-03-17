@@ -15,7 +15,8 @@ type App struct {
 }
 
 func NewApp() *App {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
+
 	return &App{
 		storage: storage,
 		server:  server.NewServer(storage),
@@ -29,7 +30,13 @@ func main() {
 		panic(err)
 	}
 
-	if err := NewApp().server.Start(appConfigs.flagHostAddr); err != nil {
+	app := NewApp()
+	if err := app.storage.Load(); err != nil {
+		log.Fatal(err)
+	}
+	app.storage.Sync()
+
+	if err := app.server.Start(appConfigs.flagHostAddr); err != nil {
 		log.Fatal(err)
 	}
 }

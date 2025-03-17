@@ -10,7 +10,7 @@ import (
 )
 
 func TestShowHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 
 	ts := httptest.NewServer(NewHandler(storage).GetRouter())
 	defer ts.Close()
@@ -39,7 +39,7 @@ func TestShowHandler(t *testing.T) {
 }
 
 func TestShowAsJSONHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 
 	ts := httptest.NewServer(NewHandler(storage).GetRouter())
 	defer ts.Close()

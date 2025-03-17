@@ -10,7 +10,7 @@ import (
 )
 
 func TestIndexHandler(t *testing.T) {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage("", 0, false)
 	handler := NewHandler(storage)
 
 	testCases := []struct {

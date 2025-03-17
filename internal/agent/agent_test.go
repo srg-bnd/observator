@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewAgent(t *testing.T) {
-	agent := NewAgent(storage.NewMemStorage(), "")
+	agent := NewAgent(storage.NewMemStorage("", 0, false), "")
 	assert.IsType(t, agent, &Agent{})
 }
 
