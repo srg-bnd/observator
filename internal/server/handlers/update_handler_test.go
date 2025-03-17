@@ -43,7 +43,7 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 
 	counter := int64(1)
 	gauge := float64(1.0)
-	existCounter := int64(1)
+	existCounter := int64(2)
 
 	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
 	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
