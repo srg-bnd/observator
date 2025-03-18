@@ -2,10 +2,9 @@
 package services
 
 import (
-	"strconv"
-
 	"github.com/srg-bnd/observator/internal/agent/client"
 	"github.com/srg-bnd/observator/internal/agent/collector"
+	"github.com/srg-bnd/observator/internal/agent/models"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -39,19 +38,17 @@ func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error 
 		if err != nil {
 			return err
 		}
-		metricValue := strconv.FormatInt(value, 10)
 
-		s.client.SendMetric("counter", metricName, metricValue)
+		s.client.SendMetric(&models.Metrics{ID: metricName, MType: "counter", Delta: &value})
 	}
 
 	for _, metricName := range trackedMetrics["gauge"] {
 		value, err := s.storage.GetGauge(metricName)
-		metricValue := strconv.FormatFloat(value, 'f', -1, 64)
 		if err != nil {
 			return err
 		}
 
-		s.client.SendMetric("gauge", metricName, metricValue)
+		s.client.SendMetric(&models.Metrics{ID: metricName, MType: "gauge", Value: &value})
 	}
 
 	return nil

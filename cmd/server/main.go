@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/srg-bnd/observator/internal/server"
+	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -14,7 +15,8 @@ type App struct {
 }
 
 func NewApp() *App {
-	storage := storage.NewMemStorage()
+	storage := storage.NewMemStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
+
 	return &App{
 		storage: storage,
 		server:  server.NewServer(storage),
@@ -24,7 +26,17 @@ func NewApp() *App {
 func main() {
 	parseFlags()
 
-	if err := NewApp().server.Start(flagHostAddr); err != nil {
+	if err := logger.Initialize(appConfigs.flagLogLevel); err != nil {
+		panic(err)
+	}
+
+	app := NewApp()
+	if err := app.storage.Load(); err != nil {
+		log.Fatal(err)
+	}
+	app.storage.Sync()
+
+	if err := app.server.Start(appConfigs.flagHostAddr); err != nil {
 		log.Fatal(err)
 	}
 }

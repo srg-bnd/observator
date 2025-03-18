@@ -2,7 +2,6 @@
 package reporter
 
 import (
-	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/client"
@@ -26,12 +25,12 @@ func NewReporter(storage storage.Repositories, client *client.Client) *Reporter 
 func (r *Reporter) Start(reportInterval time.Duration) {
 	for {
 		time.Sleep(reportInterval)
-		log.Println("=> Reporter [started]")
+		// log.Println("=> Reporter [started]")
 		err := r.service.ValueSendingService(collector.TrackedMetrics)
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 			return
 		}
-		log.Println("=> Reporter [stopped]")
+		// log.Println("=> Reporter [stopped]")
 	}
 }

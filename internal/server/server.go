@@ -4,12 +4,17 @@ package server
 import (
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/handlers"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
 type Server struct {
-	handler *handlers.Handler
+	handler Handler
+}
+
+type Handler interface {
+	GetRouter() chi.Router
 }
 
 // Creates a new server

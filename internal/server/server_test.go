@@ -16,6 +16,6 @@ func TestGetMux(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	server := NewServer(storage.NewMemStorage())
+	server := NewServer(storage.NewMemStorage("", 0, false))
 	assert.IsType(t, server, &Server{})
 }

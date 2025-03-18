@@ -8,6 +8,8 @@ import (
 
 type Collector struct {
 	memStats runtime.MemStats
+	// HACK
+	pollCount int64
 }
 
 type Metrics struct {
@@ -52,7 +54,9 @@ var TrackedMetrics = map[string][]string{
 }
 
 func NewCollector() *Collector {
-	return &Collector{}
+	return &Collector{
+		pollCount: 0,
+	}
 }
 
 func (c *Collector) GetMetrics() (*Metrics, error) {
@@ -98,7 +102,8 @@ func (c *Collector) GetMetrics() (*Metrics, error) {
 // Counter Metrics
 
 func (c *Collector) pollCountCounterMetric() int64 {
-	return 1
+	c.pollCount++
+	return c.pollCount
 }
 
 // Gauge Metrics

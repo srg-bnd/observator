@@ -1,23 +1,33 @@
-// Handlers for server
+// Handlers & Router for server
 package handlers
 
 import (
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/srg-bnd/observator/internal/server/models"
+	"github.com/srg-bnd/observator/internal/server/logger"
+	"github.com/srg-bnd/observator/internal/server/middleware"
 	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+const (
+	// Errors
+	serverError      = "serverError"
+	invalidDataError = "invalidDataError"
+
+	// Formats
+	JSONFormat = "json"
+	HTMLFormat = "text/html"
+	TextFormat = "text"
+)
+
 type Handler struct {
-	service      *services.Service
-	storage      storage.Repositories
-	rootFilePath string
+	service *services.Service
+	storage storage.Repositories
 }
 
+// Returns new Handler
 func NewHandler(storage storage.Repositories) *Handler {
 	return &Handler{
 		service: services.NewService(storage),
@@ -25,85 +35,41 @@ func NewHandler(storage storage.Repositories) *Handler {
 	}
 }
 
-// Init router
+// Returns Router for HTTP Server
 func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateMetricHandler)
-	r.Get("/value/{metricType}/{metricName}", h.ShowMetricHandler)
+	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 	r.Get("/", h.IndexHandler)
+	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
+	r.Post("/value", h.ShowAsJSONHandler)
+	r.Post("/value/", h.ShowAsJSONHandler)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
+	r.Post("/update", h.UpdateAsJSONHandler)
+	r.Post("/update/", h.UpdateAsJSONHandler)
 
 	return r
 }
 
-func (h *Handler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metric, err := h.parseAndValidateMetric(r)
-	if err != nil {
-		h.handleError(w, err)
-		return
-	}
-
-	h.processMetric(w, metric)
-}
-
-func (h *Handler) ShowMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metricType := chi.URLParam(r, "metricType")
-	metricName := chi.URLParam(r, "metricName")
-
-	switch metricType {
-	case "counter":
-		value, err := h.storage.GetCounter(metricName)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(strconv.FormatInt(value, 10)))
-	case "gauge":
-		value, err := h.storage.GetGauge(metricName)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		w.Header().Set("content-type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(strconv.FormatFloat(value, 'f', -1, 64)))
-	default:
-		{
-			w.WriteHeader(http.StatusNotFound)
-		}
+// Set content type
+func setContentType(w http.ResponseWriter, format string) {
+	switch format {
+	case JSONFormat:
+		w.Header().Set("Content-Type", "application/json")
+	case HTMLFormat:
+		w.Header().Set("Content-Type", "text/html")
+	case TextFormat:
+		w.Header().Set("Content-Type", "text/plain")
 	}
 }
 
-func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	path := strings.Split(r.URL.Path, "/")
-	if len(path) > 2 {
-		w.WriteHeader(http.StatusNotFound)
-		return
+// Handle errors
+func handleError(w http.ResponseWriter, err error) {
+	switch err.Error() {
+	case serverError:
+		w.WriteHeader(http.StatusInternalServerError)
+	case invalidDataError:
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	body := "<p>counter:</p><ul>"
-	for _, metric := range models.TrackedMetrics["counter"] {
-		value, err := h.storage.GetCounter(metric)
-		if err == nil {
-			body += "<li>" + metric + ": " + strconv.FormatInt(value, 10) + "</li>"
-		}
-	}
-	body += "</ul>"
-
-	body += "<p>gauge:</p><ul>"
-	for _, metric := range models.TrackedMetrics["gauge"] {
-		value, err := h.storage.GetGauge(metric)
-		if err == nil {
-			body += "<li>" + metric + ": " + strconv.FormatFloat(value, 'f', -1, 64) + "</li>"
-		}
-	}
-	body += "</ul>"
-
-	w.Header().Set("content-type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(body))
 }

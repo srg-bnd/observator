@@ -2,7 +2,6 @@
 package poller
 
 import (
-	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
@@ -27,20 +26,20 @@ func NewPoller(storage storage.Repositories) *Poller {
 func (r *Poller) Start(pollInterval time.Duration) {
 	for {
 		time.Sleep(pollInterval)
-		log.Println("=> Poller [started]")
+		// log.Println("=> Poller [started]")
 
 		metrics, err := r.collector.GetMetrics()
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 			return
 		}
 
 		err = r.services.MetricsUpdateService(metrics)
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 			return
 		}
 
-		log.Println("=> Poller [stopped]")
+		// log.Println("=> Poller [stopped]")
 	}
 }
