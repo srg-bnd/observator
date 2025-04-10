@@ -83,7 +83,7 @@ func handleError(w http.ResponseWriter, err error) {
 
 // GET /ping
 func (h *Handler) PingHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
 	if err := h.db.PingContext(ctx); err != nil {
