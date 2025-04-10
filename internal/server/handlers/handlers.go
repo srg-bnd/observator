@@ -2,7 +2,10 @@
 package handlers
 
 import (
+	"context"
+	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/logger"
@@ -25,13 +28,15 @@ const (
 type Handler struct {
 	service *services.Service
 	storage storage.Repositories
+	db      *sql.DB
 }
 
 // Returns new Handler
-func NewHandler(storage storage.Repositories) *Handler {
+func NewHandler(storage storage.Repositories, db *sql.DB) *Handler {
 	return &Handler{
 		service: services.NewService(storage),
 		storage: storage,
+		db:      db,
 	}
 }
 
@@ -40,6 +45,8 @@ func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
+	r.Get("/ping", h.PingHandler)
+
 	r.Get("/", h.IndexHandler)
 	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
 	r.Post("/value", h.ShowAsJSONHandler)
@@ -72,4 +79,16 @@ func handleError(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
+}
+
+// GET /ping
+func (h *Handler) PingHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	if err := h.db.PingContext(ctx); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }

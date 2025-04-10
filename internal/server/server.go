@@ -2,6 +2,7 @@
 package server
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -18,9 +19,9 @@ type Handler interface {
 }
 
 // Creates a new server
-func NewServer(storage storage.Repositories) *Server {
+func NewServer(storage storage.Repositories, db *sql.DB) *Server {
 	return &Server{
-		handler: handlers.NewHandler(storage),
+		handler: handlers.NewHandler(storage, db),
 	}
 }
 
