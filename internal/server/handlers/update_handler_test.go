@@ -9,12 +9,15 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
+	_ "modernc.org/sqlite"
 )
 
 func TestUpdateHandler(t *testing.T) {
+	db := getTempDB()
+	defer db.Close()
 	storage := storage.NewMemStorage("", 0, false)
 
-	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	ts := httptest.NewServer(NewHandler(storage, db).GetRouter())
 	defer ts.Close()
 
 	testCases := []struct {
@@ -36,9 +39,11 @@ func TestUpdateHandler(t *testing.T) {
 }
 
 func TestUpdateAsJSONHandler(t *testing.T) {
+	db := getTempDB()
+	defer db.Close()
 	storage := storage.NewMemStorage("", 0, false)
 
-	ts := httptest.NewServer(NewHandler(storage).GetRouter())
+	ts := httptest.NewServer(NewHandler(storage, db).GetRouter())
 	defer ts.Close()
 
 	counter := int64(1)

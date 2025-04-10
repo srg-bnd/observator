@@ -7,11 +7,15 @@ import (
 
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
+	_ "modernc.org/sqlite"
 )
 
 func TestIndexHandler(t *testing.T) {
+	db := getTempDB()
+	defer db.Close()
+
 	storage := storage.NewMemStorage("", 0, false)
-	handler := NewHandler(storage)
+	handler := NewHandler(storage, db)
 
 	testCases := []struct {
 		method       string

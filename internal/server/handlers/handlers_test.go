@@ -3,12 +3,16 @@ package handlers
 import (
 	"bytes"
 	"compress/gzip"
+	"database/sql"
+
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
+
+	_ "modernc.org/sqlite"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/services"
@@ -22,8 +26,10 @@ type DataRequest struct {
 }
 
 func TestNewHandler(t *testing.T) {
+	db := getTempDB()
+	defer db.Close()
 	storage := storage.NewMemStorage("", 0, false)
-	handler := NewHandler(storage)
+	handler := NewHandler(storage, db)
 	assert.IsType(t, handler, &Handler{})
 }
 
@@ -147,4 +153,13 @@ func testRequestAsJSON(t *testing.T, ts *httptest.Server, data DataRequest) (*ht
 	}
 
 	return resp, string(bodyAsString)
+}
+
+func getTempDB() *sql.DB {
+	db, err := sql.Open("sqlite", "temp.db")
+	if err != nil {
+		panic(err)
+	}
+
+	return db
 }

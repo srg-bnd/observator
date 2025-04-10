@@ -1,10 +1,12 @@
 package server
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
+	_ "modernc.org/sqlite"
 )
 
 func TestStart(t *testing.T) {
@@ -16,6 +18,12 @@ func TestGetMux(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	server := NewServer(storage.NewMemStorage("", 0, false))
+	db, err := sql.Open("sqlite", "temp.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	server := NewServer(storage.NewMemStorage("", 0, false), db)
 	assert.IsType(t, server, &Server{})
 }
