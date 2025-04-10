@@ -26,4 +26,4 @@ To successfully run autotests, name the branches `iter<number>`, where `<number>
 
 When you merge a branch with an increment into the main branch `main`, all autotests will be run.
 
-Read more about local and automatic startup in [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+Read more about local and automatic startup in [README autotests](https://github.com/Yandex-Practicum/go-autotests).
