@@ -7,7 +7,6 @@ import (
 
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
-	_ "modernc.org/sqlite"
 )
 
 func TestShowHandler(t *testing.T) {

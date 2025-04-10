@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/services"
@@ -156,7 +156,7 @@ func testRequestAsJSON(t *testing.T, ts *httptest.Server, data DataRequest) (*ht
 }
 
 func getTempDB() *sql.DB {
-	db, err := sql.Open("sqlite", "temp.db")
+	db, err := sql.Open("pgx", "")
 	if err != nil {
 		panic(err)
 	}

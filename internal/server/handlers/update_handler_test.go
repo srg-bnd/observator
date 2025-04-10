@@ -9,7 +9,6 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
-	_ "modernc.org/sqlite"
 )
 
 func TestUpdateHandler(t *testing.T) {

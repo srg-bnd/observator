@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"testing"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
-	_ "modernc.org/sqlite"
 )
 
 func TestStart(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetMux(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	db, err := sql.Open("sqlite", "temp.db")
+	db, err := sql.Open("pgx", "temp.db")
 	if err != nil {
 		panic(err)
 	}
