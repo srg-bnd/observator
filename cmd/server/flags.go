@@ -51,6 +51,6 @@ func parseFlags() {
 	}
 	// Database
 	if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
-		appConfigs.flagLogLevel = envDatabaseDSN
+		appConfigs.flagDatabaseDSN = envDatabaseDSN
 	}
 }
