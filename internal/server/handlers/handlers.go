@@ -4,6 +4,7 @@ package handlers
 import (
 	"context"
 	"database/sql"
+	"log"
 	"net/http"
 	"time"
 
@@ -83,10 +84,11 @@ func handleError(w http.ResponseWriter, err error) {
 
 // GET /ping
 func (h *Handler) PingHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	if err := h.db.PingContext(ctx); err != nil {
+		log.Println("error:", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
