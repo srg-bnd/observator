@@ -14,7 +14,7 @@ type App struct {
 
 func NewApp() *App {
 	// HACK
-	storage := storage.NewMemStorage("", 0, false)
+	storage := storage.NewMemStorage()
 	return &App{
 		agent: agent.NewAgent(storage, appConfigs.serverAddr),
 	}

@@ -13,7 +13,7 @@ func TestIndexHandler(t *testing.T) {
 	db := getTempDB()
 	defer db.Close()
 
-	storage := storage.NewMemStorage("", 0, false)
+	storage := storage.NewMemStorage()
 	handler := NewHandler(storage, db)
 
 	testCases := []struct {

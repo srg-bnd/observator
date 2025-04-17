@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewPoller(t *testing.T) {
-	poller := NewPoller(storage.NewMemStorage("", 0, false))
+	poller := NewPoller(storage.NewMemStorage())
 	assert.IsType(t, poller, &Poller{})
 }
 

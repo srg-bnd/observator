@@ -7,6 +7,6 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-	app := NewApp()
+	app := newApp()
 	assert.IsType(t, app, &App{})
 }

@@ -7,14 +7,14 @@ import (
 )
 
 func TestNewMemStorage(t *testing.T) {
-	got := NewMemStorage("", 0, false)
+	got := NewMemStorage()
 	want := &MemStorage{}
 
 	assert.IsType(t, got, want)
 }
 
 func TestSetGauge(t *testing.T) {
-	memStore := NewMemStorage("", 0, false)
+	memStore := NewMemStorage()
 	want := float64(1)
 	memStore.SetGauge("key", want)
 	got := float64(memStore.gauges["key"])
@@ -25,7 +25,7 @@ func TestSetGauge(t *testing.T) {
 }
 
 func TestGetGauge(t *testing.T) {
-	memStore := NewMemStorage("", 0, false)
+	memStore := NewMemStorage()
 	want := float64(1)
 	memStore.gauges["key"] = gauge(want)
 	got, _ := memStore.GetGauge("key")
@@ -36,7 +36,7 @@ func TestGetGauge(t *testing.T) {
 }
 
 func TestSetCounter(t *testing.T) {
-	memStore := NewMemStorage("", 0, false)
+	memStore := NewMemStorage()
 	counter := int64(10)
 	want := int64(memStore.counters["key"]) + counter
 	memStore.SetCounter("key", counter)
@@ -48,7 +48,7 @@ func TestSetCounter(t *testing.T) {
 }
 
 func TestGetCounter(t *testing.T) {
-	memStore := NewMemStorage("", 0, false)
+	memStore := NewMemStorage()
 	want := int64(1)
 	memStore.counters["key"] = counter(want)
 	value, _ := memStore.GetCounter("key")

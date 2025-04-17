@@ -24,6 +24,6 @@ func TestNewServer(t *testing.T) {
 	}
 	defer db.Close()
 
-	server := NewServer(storage.NewMemStorage("", 0, false), db)
+	server := NewServer(storage.NewMemStorage(), db)
 	assert.IsType(t, server, &Server{})
 }

@@ -1,4 +1,4 @@
-// Server for metrics collection and alerting service
+// Metrics collection and alerting service
 package main
 
 import (
@@ -12,14 +12,16 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+// App
 type App struct {
-	storage *storage.MemStorage
+	storage storage.Repositories
 	server  *server.Server
 	db      *sql.DB
 }
 
-func NewApp() *App {
-	storage := storage.NewMemStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
+// Returns App
+func newApp() *App {
+	storage := newStorage()
 	db := newDB()
 
 	return &App{
@@ -29,6 +31,23 @@ func NewApp() *App {
 	}
 }
 
+// Returns Storage
+func newStorage() storage.Repositories {
+	// TODO: DBStorage (-d present)
+
+	// FileStorage (-f present)
+	storage := storage.NewFileStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
+	if err := storage.Load(); err != nil {
+		log.Fatal(err)
+	}
+	storage.Sync()
+
+	// TODO: MemStorage (else)
+
+	return storage
+}
+
+// Returns DB
 func newDB() *sql.DB {
 	db, err := sql.Open("pgx", appConfigs.flagDatabaseDSN)
 	if err != nil {
@@ -39,21 +58,22 @@ func newDB() *sql.DB {
 }
 
 func main() {
+	// Parse run-flags
 	parseFlags()
 
+	// Init logger
 	if err := logger.Initialize(appConfigs.flagLogLevel); err != nil {
 		panic(err)
 	}
 
-	app := NewApp()
-	if err := app.storage.Load(); err != nil {
-		log.Fatal(err)
-	}
-	app.storage.Sync()
+	// Create App
+	app := newApp()
 
+	// Start App
 	if err := app.server.Start(appConfigs.flagHostAddr); err != nil {
 		log.Fatal(err)
 	}
 
+	// Close DB
 	defer app.db.Close()
 }

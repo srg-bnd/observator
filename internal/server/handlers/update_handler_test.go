@@ -14,7 +14,7 @@ import (
 func TestUpdateHandler(t *testing.T) {
 	db := getTempDB()
 	defer db.Close()
-	storage := storage.NewMemStorage("", 0, false)
+	storage := storage.NewMemStorage()
 
 	ts := httptest.NewServer(NewHandler(storage, db).GetRouter())
 	defer ts.Close()
@@ -40,7 +40,7 @@ func TestUpdateHandler(t *testing.T) {
 func TestUpdateAsJSONHandler(t *testing.T) {
 	db := getTempDB()
 	defer db.Close()
-	storage := storage.NewMemStorage("", 0, false)
+	storage := storage.NewMemStorage()
 
 	ts := httptest.NewServer(NewHandler(storage, db).GetRouter())
 	defer ts.Close()
