@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -42,19 +41,28 @@ func newStorage(db *sql.DB) storage.Repositories {
 		dbStorage := storage.NewDBStorage(db)
 		repStorage = dbStorage
 		// Migrations
-		migrationPath := "./db/migrations"
-		entries, err := os.ReadDir(migrationPath)
-		if err != nil {
-			panic(err)
+		// migrationPath := "./db/migrations"
+		// entries, err := os.ReadDir(migrationPath)
+		// if err != nil {
+		//	panic(err)
+		// }
+
+		queries := [2]string{
+			`CREATE TABLE IF NOT EXISTS gauge_metrics(
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value DOUBLE PRECISION
+			);`,
+			`CREATE TABLE IF NOT EXISTS counter_metrics(
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value BIGINT
+			);`,
 		}
 
-		for _, entry := range entries {
-			query, err := os.ReadFile(migrationPath + "/" + entry.Name())
-			if err != nil {
-				panic(err)
-			}
+		for _, query := range queries {
+			// query, err := os.ReadFile(migrationPath + "/" + entry.Name())
+			// if err != nil {
+			//	panic(err)
+			// }
 
-			_, err = db.ExecContext(context.Background(), string(query))
+			_, err := db.ExecContext(context.Background(), string(query))
 			if err != nil {
 				panic(err)
 			}
