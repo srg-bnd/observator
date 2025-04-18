@@ -40,14 +40,9 @@ func newStorage(db *sql.DB) storage.Repositories {
 	if appConfigs.flagDatabaseDSN != "" {
 		dbStorage := storage.NewDBStorage(db)
 		repStorage = dbStorage
-		// Migrations
-		// migrationPath := "./db/migrations"
-		// entries, err := os.ReadDir(migrationPath)
-		// if err != nil {
-		//	panic(err)
-		// }
 
-		queries := [2]string{
+		// Migrations
+		migrations := [2]string{
 			`CREATE TABLE IF NOT EXISTS gauge_metrics(
 				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value DOUBLE PRECISION
 			);`,
@@ -56,13 +51,8 @@ func newStorage(db *sql.DB) storage.Repositories {
 			);`,
 		}
 
-		for _, query := range queries {
-			// query, err := os.ReadFile(migrationPath + "/" + entry.Name())
-			// if err != nil {
-			//	panic(err)
-			// }
-
-			_, err := db.ExecContext(context.Background(), string(query))
+		for _, migration := range migrations {
+			_, err := db.ExecContext(context.Background(), string(migration))
 			if err != nil {
 				panic(err)
 			}
