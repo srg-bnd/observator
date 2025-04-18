@@ -59,6 +59,11 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// POST /updates
+func (h *Handler) UpdatesAsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	setContentType(w, JSONFormat)
+}
+
 // Helpers
 
 func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string) (*models.Metrics, error) {
