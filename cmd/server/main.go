@@ -2,8 +2,10 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -21,8 +23,8 @@ type App struct {
 
 // Returns App
 func newApp() *App {
-	storage := newStorage()
 	db := newDB()
+	storage := newStorage(db)
 
 	return &App{
 		storage: storage,
@@ -32,26 +34,54 @@ func newApp() *App {
 }
 
 // Returns Storage
-func newStorage() storage.Repositories {
-	// TODO: DBStorage (-d present)
+func newStorage(db *sql.DB) storage.Repositories {
+	var repStorage storage.Repositories
 
-	// FileStorage (-f present)
-	storage := storage.NewFileStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
-	if err := storage.Load(); err != nil {
-		log.Fatal(err)
+	// DB Storage
+	if appConfigs.flagDatabaseDSN != "" {
+		dbStorage := storage.NewDBStorage(db)
+		repStorage = dbStorage
+	} else {
+		// File Storage
+		fileStorage := storage.NewFileStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
+		if err := fileStorage.Load(); err != nil {
+			log.Fatal(err)
+		}
+		fileStorage.Sync()
+		repStorage = fileStorage
 	}
-	storage.Sync()
 
-	// TODO: MemStorage (else)
-
-	return storage
+	return repStorage
 }
 
 // Returns DB
 func newDB() *sql.DB {
+	if appConfigs.flagDatabaseDSN == "" {
+		return nil
+	}
+
 	db, err := sql.Open("pgx", appConfigs.flagDatabaseDSN)
 	if err != nil {
 		panic(err)
+	}
+
+	// Migrations
+	migrationPath := "../../db/migrations"
+	entries, err := os.ReadDir(migrationPath)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, entry := range entries {
+		query, err := os.ReadFile(migrationPath + "/" + entry.Name())
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = db.ExecContext(context.Background(), string(query))
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return db

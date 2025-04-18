@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS gauge_metrics(
+  id SERIAL PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  value DOUBLE PRECISION
+  /* created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL */
+);
