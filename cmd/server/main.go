@@ -1,8 +1,7 @@
-// Metrics collection and alerting service
+// Server that collects the metrics from agents
 package main
 
 import (
-	"context"
 	"database/sql"
 	"log"
 
@@ -13,14 +12,14 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// App
+// Application
 type App struct {
 	storage storage.Repositories
 	server  *server.Server
 	db      *sql.DB
 }
 
-// Returns App
+// Returns a new application
 func newApp() *App {
 	db := newDB()
 	storage := newStorage(db)
@@ -32,31 +31,19 @@ func newApp() *App {
 	}
 }
 
-// Returns Storage
+// Returns a new storage
 func newStorage(db *sql.DB) storage.Repositories {
 	var repStorage storage.Repositories
 
-	// DB Storage
 	if appConfigs.flagDatabaseDSN != "" {
+		// DB Storage
 		dbStorage := storage.NewDBStorage(db)
+
+		if err := dbStorage.ExecMigrations(); err != nil {
+			log.Fatal(err)
+		}
+
 		repStorage = dbStorage
-
-		// Migrations
-		migrations := [2]string{
-			`CREATE TABLE IF NOT EXISTS gauge_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value DOUBLE PRECISION
-			);`,
-			`CREATE TABLE IF NOT EXISTS counter_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value BIGINT
-			);`,
-		}
-
-		for _, migration := range migrations {
-			_, err := db.ExecContext(context.Background(), string(migration))
-			if err != nil {
-				panic(err)
-			}
-		}
 	} else {
 		// File Storage
 		fileStorage := storage.NewFileStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
@@ -70,18 +57,17 @@ func newStorage(db *sql.DB) storage.Repositories {
 	return repStorage
 }
 
-// Returns DB
+// Returns a new connection to DB
 func newDB() *sql.DB {
 	db, err := sql.Open("pgx", appConfigs.flagDatabaseDSN)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return db
 }
 
 func main() {
-	// Parse run-flags
 	parseFlags()
 
 	// Init logger
@@ -89,14 +75,14 @@ func main() {
 		panic(err)
 	}
 
-	// Create App
+	// Create application
 	app := newApp()
 
-	// Start App
+	// Starts the application
 	if err := app.server.Start(appConfigs.flagHostAddr); err != nil {
 		log.Fatal(err)
 	}
 
-	// Close DB
+	// Close connection to DB
 	defer app.db.Close()
 }

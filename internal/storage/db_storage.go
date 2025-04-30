@@ -1,4 +1,4 @@
-// DB Storage
+// Database storage for metrics
 package storage
 
 import (
@@ -8,18 +8,19 @@ import (
 	"errors"
 )
 
+// Database storage
 type DBStorage struct {
 	db *sql.DB
 }
 
-// Create MemStorage instance
+// Returns a new database storage
 func NewDBStorage(db *sql.DB) *DBStorage {
 	return &DBStorage{
 		db: db,
 	}
 }
 
-// Change gauge by key
+// Changes gauge by key
 func (dbStore *DBStorage) SetGauge(key string, value float64) error {
 	_, err := dbStore.GetGauge(key)
 	if err != nil {
@@ -35,7 +36,7 @@ func (dbStore *DBStorage) SetGauge(key string, value float64) error {
 	return nil
 }
 
-// Return gauge by key
+// Returns gauge by key
 func (dbStore *DBStorage) GetGauge(key string) (float64, error) {
 	row := dbStore.db.QueryRowContext(context.TODO(),
 		"SELECT value FROM gauge_metrics WHERE name = $1", key)
@@ -53,7 +54,7 @@ func (dbStore *DBStorage) GetGauge(key string) (float64, error) {
 	}
 }
 
-// Change counter by key
+// Changes counter by key
 func (dbStore *DBStorage) SetCounter(key string, value int64) error {
 	lastValue, err := dbStore.GetCounter(key)
 	if err != nil {
@@ -67,7 +68,7 @@ func (dbStore *DBStorage) SetCounter(key string, value int64) error {
 	return nil
 }
 
-// Return gauge by counter
+// Returns gauge by counter
 func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 	// TODO: Add transaction
 	row := dbStore.db.QueryRowContext(context.TODO(),
@@ -84,4 +85,37 @@ func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 	} else {
 		return -1, errors.New("unknown")
 	}
+}
+
+// Updates batch of metrics
+func (dbStore *DBStorage) SetBatchOfMetrics() error {
+	return nil
+}
+
+// Helpers
+
+// Closes connection to DB
+func (dbStore *DBStorage) Close() {
+	dbStore.db.Close()
+}
+
+// Executes migrations
+func (dbStore *DBStorage) ExecMigrations() error {
+	migrations := [2]string{
+		`CREATE TABLE IF NOT EXISTS gauge_metrics(
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value DOUBLE PRECISION
+			);`,
+		`CREATE TABLE IF NOT EXISTS counter_metrics(
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value BIGINT
+			);`,
+	}
+
+	for _, migration := range migrations {
+		_, err := dbStore.db.ExecContext(context.Background(), string(migration))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

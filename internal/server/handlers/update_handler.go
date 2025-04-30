@@ -62,6 +62,13 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 // POST /updates
 func (h *Handler) UpdatesAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
+
+	if err := h.service.BatchMetricUpdateService([]*models.Metrics{}); err != nil {
+		handleErrorForUpdate(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Helpers

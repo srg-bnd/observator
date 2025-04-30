@@ -1,4 +1,4 @@
-// Storage (Metrics)
+// Storage for metrics
 package storage
 
 type Repositories interface {
@@ -6,6 +6,7 @@ type Repositories interface {
 	GetGauge(string) (float64, error)
 	SetCounter(string, int64) error
 	GetCounter(string) (int64, error)
+	SetBatchOfMetrics() error
 }
 
 type (

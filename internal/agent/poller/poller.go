@@ -1,4 +1,4 @@
-// Collects metrics
+// Polls the metrics & saves them to the storage
 package poller
 
 import (
@@ -9,12 +9,14 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+// Poller
 type Poller struct {
 	storage   storage.Repositories
 	collector *collector.Collector
 	services  *services.Service
 }
 
+// Returns a new poller
 func NewPoller(storage storage.Repositories) *Poller {
 	return &Poller{
 		storage:   storage,
@@ -23,23 +25,19 @@ func NewPoller(storage storage.Repositories) *Poller {
 	}
 }
 
-func (r *Poller) Start(pollInterval time.Duration) {
+// Starts the poller
+func (r *Poller) Start(pollInterval time.Duration) error {
 	for {
 		time.Sleep(pollInterval)
-		// log.Println("=> Poller [started]")
 
 		metrics, err := r.collector.GetMetrics()
 		if err != nil {
-			// log.Println(err)
-			return
+			return err
 		}
 
 		err = r.services.MetricsUpdateService(metrics)
 		if err != nil {
-			// log.Println(err)
-			return
+			return err
 		}
-
-		// log.Println("=> Poller [stopped]")
 	}
 }

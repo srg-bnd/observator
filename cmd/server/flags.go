@@ -1,4 +1,4 @@
-// Flags
+// Flags & envs
 package main
 
 import (
@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// Application configs
 type AppConfigs struct {
 	flagHostAddr string
 	flagLogLevel string
@@ -18,8 +19,10 @@ type AppConfigs struct {
 	flagDatabaseDSN string // "host=%s user=%s password=%s dbname=%s sslmode=disable"
 }
 
+// Global app configs
 var appConfigs = AppConfigs{}
 
+// Parses flags from the console or envs
 func parseFlags() {
 	flag.StringVar(&appConfigs.flagHostAddr, "a", ":8080", "address and port to run server")
 	flag.StringVar(&appConfigs.flagLogLevel, "l", "info", "log level")

@@ -1,16 +1,17 @@
-// Mem Storage
+// Mem storage for metrics
 package storage
 
 import (
 	"errors"
 )
 
+// Mem storage
 type MemStorage struct {
 	gauges   map[string]gauge
 	counters map[string]counter
 }
 
-// Create MemStorage instance
+// Returns a new mem storage
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
 		gauges:   make(map[string]gauge),
@@ -18,14 +19,14 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
-// Change gauge by key
+// Changes gauge by key
 func (mStore *MemStorage) SetGauge(key string, value float64) error {
 	mStore.gauges[key] = gauge(value)
 
 	return nil
 }
 
-// Return gauge by key
+// Returns gauge by key
 func (mStore *MemStorage) GetGauge(key string) (float64, error) {
 	value, ok := mStore.gauges[key]
 	if !ok {
@@ -35,14 +36,14 @@ func (mStore *MemStorage) GetGauge(key string) (float64, error) {
 	return float64(value), nil
 }
 
-// Change counter by key
+// Changes counter by key
 func (mStore *MemStorage) SetCounter(key string, value int64) error {
 	mStore.counters[key] += counter(value)
 
 	return nil
 }
 
-// Return gauge by counter
+// Returns gauge by counter
 func (mStore *MemStorage) GetCounter(key string) (int64, error) {
 	value, ok := mStore.counters[key]
 	if !ok {
@@ -50,4 +51,9 @@ func (mStore *MemStorage) GetCounter(key string) (int64, error) {
 	}
 
 	return int64(value), nil
+}
+
+// Updates batch of metrics
+func (mStore *MemStorage) SetBatchOfMetrics() error {
+	return nil
 }

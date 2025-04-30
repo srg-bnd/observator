@@ -10,11 +10,13 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+// Reporter
 type Reporter struct {
 	storage storage.Repositories
 	service *services.Service
 }
 
+// Returns a new reporter
 func NewReporter(storage storage.Repositories, client *client.Client) *Reporter {
 	return &Reporter{
 		storage: storage,
@@ -22,15 +24,13 @@ func NewReporter(storage storage.Repositories, client *client.Client) *Reporter 
 	}
 }
 
-func (r *Reporter) Start(reportInterval time.Duration) {
+// Starts the reporter
+func (r *Reporter) Start(reportInterval time.Duration) error {
 	for {
 		time.Sleep(reportInterval)
-		// log.Println("=> Reporter [started]")
 		err := r.service.ValueSendingService(collector.TrackedMetrics)
 		if err != nil {
-			// log.Println(err)
-			return
+			return err
 		}
-		// log.Println("=> Reporter [stopped]")
 	}
 }
