@@ -60,10 +60,16 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /updates
-func (h *Handler) UpdatesAsJSONHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdatesHandler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
 
-	if err := h.service.BatchMetricUpdateService([]*models.Metrics{}); err != nil {
+	metrics, err := parseAndValidateMetricsForUpdates(r)
+	if err != nil {
+		handleErrorForUpdate(w, err)
+		return
+	}
+
+	if err := h.service.BatchMetricUpdateService(metrics); err != nil {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -127,6 +133,23 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string
 	}
 
 	return &metrics, nil
+}
+
+func parseAndValidateMetricsForUpdates(r *http.Request) ([]models.Metrics, error) {
+	metrics := make([]models.Metrics, 0)
+
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+
+	if err != nil {
+		return metrics, errors.New(invalidDataError)
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		return metrics, errors.New(invalidDataError)
+	}
+
+	return metrics, nil
 }
 
 func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) error {

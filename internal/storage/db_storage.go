@@ -88,7 +88,7 @@ func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 }
 
 // Updates batch of metrics
-func (dbStore *DBStorage) SetBatchOfMetrics() error {
+func (dbStore *DBStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
 	return nil
 }
 

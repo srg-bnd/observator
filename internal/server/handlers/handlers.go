@@ -55,7 +55,8 @@ func (h *Handler) GetRouter() chi.Router {
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Post("/update", h.UpdateAsJSONHandler)
 	r.Post("/update/", h.UpdateAsJSONHandler)
-	r.Post("/updates/", h.UpdatesAsJSONHandler)
+	r.Post("/updates", h.UpdatesHandler)
+	r.Post("/updates/", h.UpdatesHandler)
 
 	return r
 }

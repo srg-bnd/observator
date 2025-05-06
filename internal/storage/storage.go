@@ -6,7 +6,7 @@ type Repositories interface {
 	GetGauge(string) (float64, error)
 	SetCounter(string, int64) error
 	GetCounter(string) (int64, error)
-	SetBatchOfMetrics() error
+	SetBatchOfMetrics(map[string]int64, map[string]float64) error
 }
 
 type (

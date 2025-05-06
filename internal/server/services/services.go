@@ -35,8 +35,11 @@ func (service *Service) MetricUpdateService(metric *models.Metrics) error {
 }
 
 // Batch metric update service
-func (service *Service) BatchMetricUpdateService(metrics []*models.Metrics) error {
-	if err := service.storage.SetBatchOfMetrics(); err != nil {
+func (service *Service) BatchMetricUpdateService(metrics []models.Metrics) error {
+	counterMetrics := make(map[string]int64, 0)
+	gaugeMetrics := make(map[string]float64, 0)
+
+	if err := service.storage.SetBatchOfMetrics(counterMetrics, gaugeMetrics); err != nil {
 		return err
 	}
 
