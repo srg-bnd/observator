@@ -33,11 +33,3 @@ func TestIndexHandler(t *testing.T) {
 		})
 	}
 }
-
-func TestGetMetricsByMType(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestRepresentMetricsByMType(t *testing.T) {
-	t.Logf("TODO")
-}

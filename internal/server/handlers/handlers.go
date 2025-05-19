@@ -16,8 +16,9 @@ import (
 
 const (
 	// Errors
-	serverError      = "serverError"
-	invalidDataError = "invalidDataError"
+	serverError      = "server error"
+	invalidDataError = "invalid data"
+	notFoundError    = "not found"
 
 	// Formats
 	JSONFormat = "json"
@@ -42,13 +43,18 @@ func NewHandler(storage storage.Repositories, db *sql.DB) *Handler {
 func (h *Handler) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
+	showHandler := NewShowHandler(h.storage)
+
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 	r.Get("/ping", h.PingHandler)
 
+	// Index
 	r.Get("/", NewIndexHandler(h.storage).Handler)
-	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
-	r.Post("/value", h.ShowAsJSONHandler)
-	r.Post("/value/", h.ShowAsJSONHandler)
+	// Show
+	r.Get("/value/{metricType}/{metricName}", showHandler.Handler)
+	r.Post("/value", showHandler.JSONHandler)
+	r.Post("/value/", showHandler.JSONHandler)
+	// Update
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Post("/update", h.UpdateAsJSONHandler)
 	r.Post("/update/", h.UpdateAsJSONHandler)
@@ -77,6 +83,8 @@ func handleError(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusInternalServerError)
 	case invalidDataError:
 		w.WriteHeader(http.StatusBadRequest)
+	case notFoundError:
+		w.WriteHeader(http.StatusNotFound)
 	}
 
 }

@@ -166,7 +166,7 @@ func processForUpdate(h *Handler, _ *http.Request, metric *models.Metrics) error
 
 func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics, contentType string) error {
 	if contentType == JSONFormat {
-		return representForShow(w, r, metrics, contentType)
+		return representForShow(w, metrics, contentType)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -180,4 +180,29 @@ func handleErrorForUpdate(w http.ResponseWriter, err error) {
 	default:
 		handleError(w, err)
 	}
+}
+
+// Generates a response
+func representForShow(w http.ResponseWriter, metric *models.Metrics, format string) error {
+	var body []byte
+
+	if format == JSONFormat {
+		data, err := json.Marshal(metric)
+		if err != nil {
+			return errors.New(serverError)
+		}
+		body = data
+	} else {
+		switch metric.MType {
+		case "counter":
+			body = []byte(metric.GetCounterAsString())
+		case "gauge":
+			body = []byte(metric.GetGaugeAsString())
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+
+	return nil
 }

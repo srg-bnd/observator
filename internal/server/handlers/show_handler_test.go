@@ -40,7 +40,7 @@ func TestShowHandler(t *testing.T) {
 	}
 }
 
-func TestShowAsJSONHandler(t *testing.T) {
+func TestShowHandlerForJSON(t *testing.T) {
 	db := getTempDB()
 	defer db.Close()
 	storage := storage.NewMemStorage()
@@ -51,23 +51,12 @@ func TestShowAsJSONHandler(t *testing.T) {
 	storage.SetCounter("correctKey", 1)
 	storage.SetGauge("correctKey", 1)
 
-	// counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter"})
-	// gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge"})
-
-	// counter, _ := storage.GetCounter("correctKey")
-	// gauge, _ := storage.GetGauge("correctKey")
-
-	// wantCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
-	// wantGaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
-
 	testCases := []struct {
 		name   string
 		status int
 		data   DataRequest
 		want   string
 	}{
-		// {name: "correct counter", data: DataRequest{path: "/value", method: "POST", body: string(counterMetrics), acceptEncoding: "gzip"}, status: http.StatusOK, want: string(wantCounterMetrics)},
-		// {name: "correct gauge", data: DataRequest{path: "/value", method: "POST", body: string(gaugeMetrics)}, status: http.StatusOK, want: string(wantGaugeMetrics)},
 		{name: "incorrect values", data: DataRequest{path: "/value", method: "POST", body: `{"ID": "unknown", "MType": "unknown"}`, acceptEncoding: ""}, status: http.StatusNotFound, want: ""},
 		{name: "empty body", data: DataRequest{path: "/value", method: "POST", body: "", acceptEncoding: ""}, status: http.StatusBadRequest, want: ""},
 	}
@@ -80,16 +69,4 @@ func TestShowAsJSONHandler(t *testing.T) {
 			assert.Equal(t, tc.want, body)
 		})
 	}
-}
-
-func TestFindMetricsForShow(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestRepresentMetricsForShow(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestHandleErrorForShow(t *testing.T) {
-	t.Logf("TODO")
 }
