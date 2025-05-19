@@ -63,13 +63,27 @@ func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdatesHandler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
 
-	metrics, err := parseAndValidateMetricsForUpdates(r)
+	// Parse and validate metrics
+	metrics := make([]models.Metrics, 0)
+
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+
 	if err != nil {
-		handleErrorForUpdate(w, err)
+		handleErrorForUpdate(w, errors.New(invalidDataError))
 		return
 	}
 
-	if err := h.service.BatchMetricUpdateService(metrics); err != nil {
+	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		handleErrorForUpdate(w, errors.New(invalidDataError))
+		return
+	}
+
+	// Updates metrics in Storage
+	counterMetrics := make(map[string]int64, 0)
+	gaugeMetrics := make(map[string]float64, 0)
+
+	if err := h.storage.SetBatchOfMetrics(counterMetrics, gaugeMetrics); err != nil {
 		handleErrorForUpdate(w, err)
 		return
 	}
@@ -135,26 +149,16 @@ func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string
 	return &metrics, nil
 }
 
-func parseAndValidateMetricsForUpdates(r *http.Request) ([]models.Metrics, error) {
-	metrics := make([]models.Metrics, 0)
-
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r.Body)
-
-	if err != nil {
-		return metrics, errors.New(invalidDataError)
-	}
-
-	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-		return metrics, errors.New(invalidDataError)
-	}
-
-	return metrics, nil
-}
-
-func processForUpdate(h *Handler, _ *http.Request, metrics *models.Metrics) error {
-	if err := h.service.MetricUpdateService(metrics); err != nil {
-		return errors.New(serverError)
+func processForUpdate(h *Handler, _ *http.Request, metric *models.Metrics) error {
+	switch metric.MType {
+	case "counter":
+		h.storage.SetCounter(metric.ID, metric.GetCounter())
+		counter, _ := h.storage.GetCounter(metric.ID)
+		metric.Delta = &counter
+	case "gauge":
+		h.storage.SetGauge(metric.ID, metric.GetGauge())
+		gauge, _ := h.storage.GetGauge(metric.ID)
+		metric.Value = &gauge
 	}
 
 	return nil

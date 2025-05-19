@@ -15,7 +15,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/go-chi/chi"
-	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +34,6 @@ func TestNewHandler(t *testing.T) {
 
 func TestGetRouter(t *testing.T) {
 	type fields struct {
-		service *services.Service
 		storage storage.Repositories
 	}
 	tests := []struct {
@@ -48,7 +46,6 @@ func TestGetRouter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				service: tt.fields.service,
 				storage: tt.fields.storage,
 			}
 			if got := h.GetRouter(); !reflect.DeepEqual(got, tt.want) {

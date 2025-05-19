@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/middleware"
-	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -27,7 +26,6 @@ const (
 )
 
 type Handler struct {
-	service *services.Service
 	storage storage.Repositories
 	db      *sql.DB
 }
@@ -35,7 +33,6 @@ type Handler struct {
 // Returns new Handler
 func NewHandler(storage storage.Repositories, db *sql.DB) *Handler {
 	return &Handler{
-		service: services.NewService(storage),
 		storage: storage,
 		db:      db,
 	}
