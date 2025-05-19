@@ -45,7 +45,7 @@ func (h *Handler) GetRouter() chi.Router {
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 	r.Get("/ping", h.PingHandler)
 
-	r.Get("/", h.IndexHandler)
+	r.Get("/", NewIndexHandler(h.storage).Handler)
 	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
 	r.Post("/value", h.ShowAsJSONHandler)
 	r.Post("/value/", h.ShowAsJSONHandler)

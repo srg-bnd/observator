@@ -14,7 +14,6 @@ func TestIndexHandler(t *testing.T) {
 	defer db.Close()
 
 	storage := storage.NewMemStorage()
-	handler := NewHandler(storage, db)
 
 	testCases := []struct {
 		method       string
@@ -28,7 +27,7 @@ func TestIndexHandler(t *testing.T) {
 			r := httptest.NewRequest(tc.method, "/", nil)
 			w := httptest.NewRecorder()
 
-			handler.IndexHandler(w, r)
+			NewIndexHandler(storage).Handler(w, r)
 
 			assert.Equal(t, tc.expectedCode, w.Code)
 		})
