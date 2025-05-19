@@ -13,196 +13,154 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
-const (
-	invalidNameError = "invalidNameError"
-)
+// Show repository
+type UpdateRepository interface {
+	SetGauge(string, float64) error
+	GetGauge(string) (float64, error)
+	SetCounter(string, int64) error
+	GetCounter(string) (int64, error)
+}
+
+// Update handler
+type UpdateHandler struct {
+	repository UpdateRepository
+}
+
+// Returns new update handler
+func NewUpdateHandler(repository UpdateRepository) *UpdateHandler {
+	return &UpdateHandler{
+		repository: repository,
+	}
+}
 
 // POST /update/{metricType}/{metricName}/{metricValue}
-func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, TextFormat)
 
-	metrics, err := parseAndValidateMetricsForUpdate(h, r, TextFormat)
+	metric, err := h.parseAndValidateMetric(r, TextFormat)
 	if err != nil {
-		handleErrorForUpdate(w, err)
+		handleError(w, err)
 		return
 	}
 
-	if err != processForUpdate(h, r, metrics) {
-		handleErrorForUpdate(w, err)
+	if err != h.process(metric) {
+		handleError(w, err)
 		return
 	}
 
-	if err != representForUpdate(h, w, r, metrics, TextFormat) {
-		handleErrorForUpdate(w, err)
+	if err != h.represent(w, metric, TextFormat) {
+		handleError(w, err)
 		return
 	}
 }
 
 // POST /update
-func (h *Handler) UpdateAsJSONHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UpdateHandler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
 
-	metrics, err := parseAndValidateMetricsForUpdate(h, r, JSONFormat)
+	metric, err := h.parseAndValidateMetric(r, JSONFormat)
 	if err != nil {
-		handleErrorForUpdate(w, err)
+		handleError(w, err)
 		return
 	}
 
-	if err != processForUpdate(h, r, metrics) {
-		handleErrorForUpdate(w, err)
+	if err != h.process(metric) {
+		handleError(w, err)
 		return
 	}
 
-	if err != representForUpdate(h, w, r, metrics, JSONFormat) {
-		handleErrorForUpdate(w, err)
+	if err != h.represent(w, metric, JSONFormat) {
+		handleError(w, err)
 		return
 	}
 }
 
-// POST /updates
-func (h *Handler) UpdatesHandler(w http.ResponseWriter, r *http.Request) {
-	setContentType(w, JSONFormat)
-
-	// Parse and validate metrics
-	metrics := make([]models.Metrics, 0)
-
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r.Body)
-
-	if err != nil {
-		handleErrorForUpdate(w, errors.New(invalidDataError))
-		return
-	}
-
-	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-		handleErrorForUpdate(w, errors.New(invalidDataError))
-		return
-	}
-
-	// Updates metrics in Storage
-	counterMetrics := make(map[string]int64, 0)
-	gaugeMetrics := make(map[string]float64, 0)
-
-	if err := h.storage.SetBatchOfMetrics(counterMetrics, gaugeMetrics); err != nil {
-		handleErrorForUpdate(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// Helpers
-
-func parseAndValidateMetricsForUpdate(_ *Handler, r *http.Request, format string) (*models.Metrics, error) {
-	var metricsValue string
-	metrics := models.Metrics{}
+// Parses and validate metric
+func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (*models.Metrics, error) {
+	var metricValue string
+	metric := models.Metrics{}
 
 	if format == JSONFormat {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
 
 		if err != nil {
-			return &metrics, errors.New(invalidDataError)
+			return &metric, errors.New(invalidDataError)
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-			return &metrics, errors.New(invalidDataError)
+		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
+			return &metric, errors.New(invalidDataError)
 		}
 	} else {
-		metrics.MType = chi.URLParam(r, "metricType")
-		metrics.ID = chi.URLParam(r, "metricName")
+		metric.MType = chi.URLParam(r, "metricType")
+		metric.ID = chi.URLParam(r, "metricName")
 	}
 
 	// Check type
-	if !slices.Contains(models.MetricsMTypes, metrics.MType) {
-		return &metrics, errors.New(invalidDataError)
+	if !slices.Contains(models.MetricsMTypes, metric.MType) {
+		return &metric, errors.New(invalidDataError)
 	}
 
 	// Check name
-	if metrics.ID == "" {
-		return &metrics, errors.New(invalidNameError)
+	if metric.ID == "" {
+		return &metric, errors.New(invalidNameError)
 	}
 
 	// Check value
 	if format != JSONFormat {
-		metricsValue = chi.URLParam(r, "metricValue")
+		metricValue = chi.URLParam(r, "metricValue")
 
-		switch metrics.MType {
+		switch metric.MType {
 		case "counter":
-			value, err := strconv.ParseInt(metricsValue, 10, 64)
+			value, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
 				return nil, errors.New(invalidDataError)
 			}
 
-			metrics.SetCounter(value)
+			metric.SetCounter(value)
 		case "gauge":
-			value, err := strconv.ParseFloat(metricsValue, 64)
+			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
 				return nil, errors.New(invalidDataError)
 			}
 
-			metrics.SetGauge(value)
+			metric.SetGauge(value)
 		}
 	}
 
-	return &metrics, nil
+	return &metric, nil
 }
 
-func processForUpdate(h *Handler, _ *http.Request, metric *models.Metrics) error {
+func (h *UpdateHandler) process(metric *models.Metrics) error {
 	switch metric.MType {
 	case "counter":
-		h.storage.SetCounter(metric.ID, metric.GetCounter())
-		counter, _ := h.storage.GetCounter(metric.ID)
+		h.repository.SetCounter(metric.ID, metric.GetCounter())
+		counter, _ := h.repository.GetCounter(metric.ID)
 		metric.Delta = &counter
 	case "gauge":
-		h.storage.SetGauge(metric.ID, metric.GetGauge())
-		gauge, _ := h.storage.GetGauge(metric.ID)
+		h.repository.SetGauge(metric.ID, metric.GetGauge())
+		gauge, _ := h.repository.GetGauge(metric.ID)
 		metric.Value = &gauge
 	}
 
 	return nil
 }
 
-func representForUpdate(_ *Handler, w http.ResponseWriter, r *http.Request, metrics *models.Metrics, contentType string) error {
-	if contentType == JSONFormat {
-		return representForShow(w, metrics, contentType)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	return nil
-}
-
-func handleErrorForUpdate(w http.ResponseWriter, err error) {
-	switch err.Error() {
-	case invalidNameError:
-		w.WriteHeader(http.StatusNotFound)
-	default:
-		handleError(w, err)
-	}
-}
-
 // Generates a response
-func representForShow(w http.ResponseWriter, metric *models.Metrics, format string) error {
-	var body []byte
+func (h *UpdateHandler) represent(w http.ResponseWriter, metric *models.Metrics, contentType string) error {
+	if contentType == JSONFormat {
+		var body []byte
 
-	if format == JSONFormat {
 		data, err := json.Marshal(metric)
 		if err != nil {
 			return errors.New(serverError)
 		}
 		body = data
-	} else {
-		switch metric.MType {
-		case "counter":
-			body = []byte(metric.GetCounterAsString())
-		case "gauge":
-			body = []byte(metric.GetGaugeAsString())
-		}
+
+		w.Write(body)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
-
 	return nil
 }

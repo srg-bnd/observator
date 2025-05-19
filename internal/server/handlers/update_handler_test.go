@@ -76,19 +76,3 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 		})
 	}
 }
-
-func TestParseAndValidateMetricsForUpdate(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestProcessForUpdate(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestRepresentForUpdate(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestHandleErrorForUpdate(t *testing.T) {
-	t.Logf("TODO")
-}
