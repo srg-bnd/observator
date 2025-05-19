@@ -75,7 +75,7 @@ func (h *UpdateHandler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Parses and validate metric
+// Parses and validates metric
 func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (*models.Metrics, error) {
 	var metricValue string
 	metric := models.Metrics{}
@@ -132,6 +132,7 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 	return &metric, nil
 }
 
+// Processes the metric
 func (h *UpdateHandler) process(metric *models.Metrics) error {
 	switch metric.MType {
 	case "counter":

@@ -90,7 +90,7 @@ func (fStore *FileStorage) GetCounter(key string) (int64, error) {
 	return int64(value), nil
 }
 
-// Updates batch of metrics
+// Batch update batch of metrics
 func (fStore *FileStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
 	return nil
 }
