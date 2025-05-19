@@ -1,4 +1,4 @@
-// Index Handlers (Metrics)
+// Index Handler
 package handlers
 
 import (

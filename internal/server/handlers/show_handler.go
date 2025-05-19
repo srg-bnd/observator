@@ -1,4 +1,4 @@
-// Show Handlers (Metrics)
+// Show Handler
 package handlers
 
 import (

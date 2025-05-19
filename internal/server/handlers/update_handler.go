@@ -1,4 +1,4 @@
-// Update Handlers (Metrics)
+// Update Handler
 package handlers
 
 import (

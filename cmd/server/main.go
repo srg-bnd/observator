@@ -9,6 +9,7 @@ import (
 
 	"github.com/srg-bnd/observator/internal/server"
 	"github.com/srg-bnd/observator/internal/server/logger"
+	"github.com/srg-bnd/observator/internal/server/router"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -26,7 +27,7 @@ func newApp() *App {
 
 	return &App{
 		storage: storage,
-		server:  server.NewServer(storage, db),
+		server:  server.NewServer(router.NewRouter(storage, db)),
 		db:      db,
 	}
 }

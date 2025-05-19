@@ -2,32 +2,24 @@
 package server
 
 import (
-	"database/sql"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/srg-bnd/observator/internal/server/handlers"
-	"github.com/srg-bnd/observator/internal/storage"
 )
 
+// Base server
 type Server struct {
-	handler Handler
-}
-
-type Handler interface {
-	GetRouter() chi.Router
+	router http.Handler
 }
 
 // Creates a new server
-func NewServer(storage storage.Repositories, db *sql.DB) *Server {
+func NewServer(router http.Handler) *Server {
 	return &Server{
-		handler: handlers.NewHandler(storage, db),
+		router: router,
 	}
 }
 
 // Starts the server
 func (server *Server) Start(addr string) error {
-	err := http.ListenAndServe(addr, server.handler.GetRouter())
+	err := http.ListenAndServe(addr, server.router)
 	if err != nil {
 		return err
 	}
