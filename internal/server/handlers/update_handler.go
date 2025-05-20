@@ -83,6 +83,7 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 	if format == JSONFormat {
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(r.Body)
+		defer r.Body.Close()
 
 		if err != nil {
 			return &metric, errors.New(invalidDataError)
@@ -159,9 +160,11 @@ func (h *UpdateHandler) represent(w http.ResponseWriter, metric *models.Metrics,
 		}
 		body = data
 
+		w.WriteHeader(http.StatusOK)
 		w.Write(body)
+	} else {
+		w.WriteHeader(http.StatusOK)
 	}
 
-	w.WriteHeader(http.StatusOK)
 	return nil
 }
