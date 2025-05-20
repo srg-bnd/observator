@@ -47,9 +47,17 @@ func (h *UpdatesHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Updates metrics in Storage
+	// Updates metrics in storage
 	counterMetrics := make(map[string]int64, 0)
 	gaugeMetrics := make(map[string]float64, 0)
+
+	for _, metric := range metrics {
+		if metric.MType == "counter" {
+			counterMetrics[metric.ID] = *metric.Delta
+		} else {
+			gaugeMetrics[metric.ID] = *metric.Value
+		}
+	}
 
 	if err := h.repository.SetBatchOfMetrics(counterMetrics, gaugeMetrics); err != nil {
 		handleError(w, err)
