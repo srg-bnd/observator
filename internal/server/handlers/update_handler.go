@@ -48,7 +48,10 @@ func (h *UpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if err != h.represent(w, metric, TextFormat) {
+		handleError(w, err)
+		return
+	}
 }
 
 // POST /update
@@ -147,24 +150,18 @@ func (h *UpdateHandler) process(metric *models.Metrics) error {
 
 // Generates a response
 func (h *UpdateHandler) represent(w http.ResponseWriter, metric *models.Metrics, contentType string) error {
-	var body []byte
 	if contentType == JSONFormat {
+		var body []byte
+
 		data, err := json.Marshal(metric)
 		if err != nil {
 			return errors.New(serverError)
 		}
 		body = data
-	} else {
-		switch metric.MType {
-		case "counter":
-			body = []byte(metric.GetCounterAsString())
-		case "gauge":
-			body = []byte(metric.GetGaugeAsString())
-		}
+
+		w.Write(body)
 	}
 
-	w.Write(body)
 	w.WriteHeader(http.StatusOK)
-
 	return nil
 }
