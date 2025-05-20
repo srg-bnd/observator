@@ -89,6 +89,16 @@ func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 
 // Batch update batch of metrics
 func (dbStore *DBStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+	// TODO: needs optimization (saves batch metrics)
+
+	for key, value := range counterMetrics {
+		dbStore.SetCounter(key, value)
+	}
+
+	for key, value := range gaugeMetrics {
+		dbStore.SetGauge(key, value)
+	}
+
 	return nil
 }
 

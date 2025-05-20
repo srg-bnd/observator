@@ -55,5 +55,13 @@ func (mStore *MemStorage) GetCounter(key string) (int64, error) {
 
 // Batch update batch of metrics
 func (mStore *MemStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+	for key, value := range counterMetrics {
+		mStore.SetCounter(key, value)
+	}
+
+	for key, value := range gaugeMetrics {
+		mStore.SetGauge(key, value)
+	}
+
 	return nil
 }

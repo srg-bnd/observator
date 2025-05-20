@@ -92,6 +92,16 @@ func (fStore *FileStorage) GetCounter(key string) (int64, error) {
 
 // Batch update batch of metrics
 func (fStore *FileStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+	// TODO: needs optimization (all parameters are re-saved in each iteration)
+	for key, value := range counterMetrics {
+		fStore.SetCounter(key, value)
+	}
+
+	// TODO: needs optimization (all parameters are re-saved in each iteration)
+	for key, value := range gaugeMetrics {
+		fStore.SetGauge(key, value)
+	}
+
 	return nil
 }
 
