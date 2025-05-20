@@ -11,24 +11,24 @@ import (
 )
 
 // Updates repository
-type UpdatesRepository interface {
+type BatchUpdateRepository interface {
 	SetBatchOfMetrics(map[string]int64, map[string]float64) error
 }
 
 // Updates handler
-type UpdatesHandler struct {
-	repository UpdatesRepository
+type BatchUpdateHandler struct {
+	repository BatchUpdateRepository
 }
 
 // Returns new update handler
-func NewUpdatesHandler(repository UpdatesRepository) *UpdatesHandler {
-	return &UpdatesHandler{
+func NewBatchUpdateHandler(repository BatchUpdateRepository) *BatchUpdateHandler {
+	return &BatchUpdateHandler{
 		repository: repository,
 	}
 }
 
 // POST /updates
-func (h *UpdatesHandler) Handler(w http.ResponseWriter, r *http.Request) {
+func (h *BatchUpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
 
 	// Parse and validate metrics

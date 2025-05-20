@@ -17,7 +17,7 @@ func NewRouter(storage storage.Repositories, db *sql.DB) chi.Router {
 
 	showHandler := handlers.NewShowHandler(storage)
 	updateHandler := handlers.NewUpdateHandler(storage)
-	updatesHandler := handlers.NewUpdatesHandler(storage)
+	batchUpdateHandler := handlers.NewBatchUpdateHandler(storage)
 
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 	r.Get("/ping", handlers.NewPingHandler(db).Handler)
@@ -33,8 +33,8 @@ func NewRouter(storage storage.Repositories, db *sql.DB) chi.Router {
 	r.Post("/update", updateHandler.JSONHandler)
 	r.Post("/update/", updateHandler.JSONHandler)
 	// Batch-update
-	r.Post("/updates", updatesHandler.Handler)
-	r.Post("/updates/", updatesHandler.Handler)
+	r.Post("/updates", batchUpdateHandler.Handler)
+	r.Post("/updates/", batchUpdateHandler.Handler)
 
 	return r
 }
