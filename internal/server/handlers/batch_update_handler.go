@@ -53,7 +53,7 @@ func (h *BatchUpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 
 	for _, metric := range metrics {
 		if metric.MType == "counter" {
-			counterMetrics[metric.ID] = *metric.Delta
+			counterMetrics[metric.ID] += *metric.Delta
 		} else {
 			gaugeMetrics[metric.ID] = *metric.Value
 		}
