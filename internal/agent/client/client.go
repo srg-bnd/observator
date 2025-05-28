@@ -42,11 +42,18 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 		return err
 	}
 
+	// Retriable errors
+	repetitionIntervals := [3]int{1, 3, 5}
+	currentRepetitionIntervals := -1
+
 	// Init client
 	c.client.
-		SetRetryCount(0).
-		SetRetryWaitTime(1 * time.Second).
-		SetRetryMaxWaitTime(1 * time.Second)
+		SetRetryCount(len(repetitionIntervals)).
+		SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
+			currentRepetitionIntervals++
+			return time.Duration(repetitionIntervals[currentRepetitionIntervals]) * time.Second, nil
+		}).
+		SetRetryMaxWaitTime(5 * time.Second)
 
 	// Execute a request
 	res, err := c.client.R().SetBody(compressedData).
