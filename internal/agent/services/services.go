@@ -57,8 +57,7 @@ func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error 
 		metrics = append(metrics, models.Metrics{ID: metricName, MType: "gauge", Value: &value})
 	}
 
-	for _, metric := range metrics {
-		s.client.SendMetric(&metric)
-	}
+	s.client.SendMetrics(metrics)
+
 	return nil
 }
