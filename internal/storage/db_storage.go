@@ -64,11 +64,17 @@ func (dbStore *DBStorage) SetCounter(key string, value int64) error {
 	}
 	defer tx.Rollback()
 
-	tx.ExecContext(context.TODO(),
+	_, err = tx.ExecContext(context.TODO(),
 		`INSERT INTO counter_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
 				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`, key, value)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	tx.Commit()
 
 	return nil

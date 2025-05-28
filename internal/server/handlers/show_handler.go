@@ -89,8 +89,8 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 		delta, err := h.repository.GetCounter(metric.ID)
 		if err != nil {
 			if format == JSONFormat {
-				zero := int64(0)
-				metric.Delta = &zero
+				newDelta := int64(*metric.Delta)
+				metric.Delta = &newDelta
 			} else {
 				return &metric, errors.New(notFoundError)
 			}
@@ -101,8 +101,8 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 		value, err := h.repository.GetGauge(metric.ID)
 		if err != nil {
 			if format == JSONFormat {
-				zero := float64(0)
-				metric.Value = &zero
+				newValue := float64(*metric.Value)
+				metric.Value = &newValue
 			} else {
 				return &metric, errors.New(notFoundError)
 			}

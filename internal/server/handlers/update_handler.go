@@ -138,12 +138,18 @@ func (h *UpdateHandler) process(metric *models.Metrics) error {
 	switch metric.MType {
 	case "counter":
 		h.repository.SetCounter(metric.ID, metric.GetCounter())
-		counter, _ := h.repository.GetCounter(metric.ID)
-		metric.Delta = &counter
+		delta, err := h.repository.GetCounter(metric.ID)
+		if err != nil {
+			return nil
+		}
+		metric.Delta = &delta
 	case "gauge":
 		h.repository.SetGauge(metric.ID, metric.GetGauge())
-		gauge, _ := h.repository.GetGauge(metric.ID)
-		metric.Value = &gauge
+		value, err := h.repository.GetGauge(metric.ID)
+		if err != nil {
+			return nil
+		}
+		metric.Value = &value
 	}
 
 	return nil
