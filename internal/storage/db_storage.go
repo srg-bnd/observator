@@ -22,16 +22,18 @@ func NewDBStorage(db *sql.DB) *DBStorage {
 
 // Changes gauge by key
 func (dbStore *DBStorage) SetGauge(key string, value float64) error {
-	_, err := dbStore.GetGauge(key)
+	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
 	if err != nil {
-		dbStore.db.ExecContext(context.TODO(),
-			"INSERT INTO gauge_metrics (name, value) VALUES($1, $2)", key, value)
-	} else {
-		tx, _ := dbStore.db.BeginTx(context.TODO(), nil)
-		tx.ExecContext(context.TODO(),
-			"UPDATE gauge_metrics SET value=$1 WHERE name=$2", value, key)
-		tx.Commit()
+		return err
 	}
+	defer tx.Rollback()
+
+	tx.ExecContext(context.TODO(),
+		`INSERT INTO gauge_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = $2;`, key, value)
+	tx.Commit()
 
 	return nil
 }
@@ -56,14 +58,18 @@ func (dbStore *DBStorage) GetGauge(key string) (float64, error) {
 
 // Changes counter by key
 func (dbStore *DBStorage) SetCounter(key string, value int64) error {
-	lastValue, err := dbStore.GetCounter(key)
+	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
 	if err != nil {
-		dbStore.db.ExecContext(context.TODO(),
-			"INSERT INTO counter_metrics (name, value) VALUES($1, $2)", key, lastValue+value)
-	} else {
-		dbStore.db.ExecContext(context.TODO(),
-			"UPDATE counter_metrics SET value=$1 WHERE name=$2", lastValue+value, key)
+		return err
 	}
+	defer tx.Rollback()
+
+	tx.ExecContext(context.TODO(),
+		`INSERT INTO counter_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`, key, value)
+	tx.Commit()
 
 	return nil
 }
@@ -89,15 +95,37 @@ func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 
 // Batch update batch of metrics
 func (dbStore *DBStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
-	// TODO: needs optimization (saves batch metrics)
+	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
 	for key, value := range counterMetrics {
-		dbStore.SetCounter(key, value)
+		_, err := tx.ExecContext(context.TODO(),
+			`INSERT INTO counter_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`, key, value)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	for key, value := range gaugeMetrics {
-		dbStore.SetGauge(key, value)
+		_, err := tx.ExecContext(context.TODO(),
+			`INSERT INTO gauge_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = $2;`, key, value)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
+
+	tx.Commit()
 
 	return nil
 }
@@ -113,10 +141,10 @@ func (dbStore *DBStorage) Close() {
 func (dbStore *DBStorage) ExecMigrations() error {
 	migrations := [2]string{
 		`CREATE TABLE IF NOT EXISTS gauge_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value DOUBLE PRECISION
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value DOUBLE PRECISION
 			);`,
 		`CREATE TABLE IF NOT EXISTS counter_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, value BIGINT
+				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value BIGINT
 			);`,
 	}
 
