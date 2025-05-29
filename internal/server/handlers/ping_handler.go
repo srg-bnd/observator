@@ -26,12 +26,12 @@ func (h *PingHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	for _, repetitionInterval := range [4]int{0, 1, 3, 5} {
+	for repetitionIter, repetitionInterval := range [4]int{0, 1, 3, 5} {
 		time.Sleep(time.Duration(repetitionInterval) * time.Second)
 
 		if err := h.db.PingContext(ctx); err != nil {
 			// TODO: check type of error
-			log.Println(fmt.Errorf("%s: %w", "error", err))
+			log.Println(fmt.Errorf("[Attempt-%d]: %w", repetitionIter+1, err))
 		} else {
 			w.WriteHeader(http.StatusOK)
 			return
