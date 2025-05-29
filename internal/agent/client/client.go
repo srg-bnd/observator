@@ -44,14 +44,14 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 
 	// Retriable errors
 	repetitionIntervals := [3]int{1, 3, 5}
-	currentRepetitionIntervals := -1
+	currentRepetitionInterval := -1
 
 	// Init client
 	c.client.
 		SetRetryCount(len(repetitionIntervals)).
 		SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
-			currentRepetitionIntervals++
-			return time.Duration(repetitionIntervals[currentRepetitionIntervals]) * time.Second, nil
+			currentRepetitionInterval++
+			return time.Duration(repetitionIntervals[currentRepetitionInterval]) * time.Second, nil
 		}).
 		SetRetryMaxWaitTime(5 * time.Second)
 
