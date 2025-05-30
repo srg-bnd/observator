@@ -26,8 +26,12 @@ func NewReporter(storage storage.Repositories, client *client.Client) *Reporter 
 
 // Starts the reporter
 func (r *Reporter) Start(reportInterval time.Duration) error {
+	ticker := time.NewTicker(reportInterval)
+	defer ticker.Stop()
+
 	for {
-		time.Sleep(reportInterval)
+		<-ticker.C
+
 		err := r.service.ValueSendingService(collector.TrackedMetrics)
 		if err != nil {
 			return err
