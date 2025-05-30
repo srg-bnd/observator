@@ -42,17 +42,16 @@ func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error 
 	for _, metricName := range trackedMetrics["counter"] {
 		if value, err := s.storage.GetCounter(metricName); err == nil {
 			metrics = append(metrics, models.Metrics{ID: metricName, MType: "counter", Delta: &value})
-		} else {
-			// TODO: send to logs
 		}
+		// TODO: send to logs if error
 	}
 
 	for _, metricName := range trackedMetrics["gauge"] {
 		if value, err := s.storage.GetGauge(metricName); err == nil {
 			metrics = append(metrics, models.Metrics{ID: metricName, MType: "gauge", Value: &value})
-		} else {
-			// TODO: send to logs
 		}
+		// TODO: send to logs if error
+
 	}
 
 	if len(metrics) > 0 {
