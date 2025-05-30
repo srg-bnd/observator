@@ -27,8 +27,11 @@ func NewPoller(storage storage.Repositories) *Poller {
 
 // Starts the poller
 func (r *Poller) Start(pollInterval time.Duration) error {
+	ticker := time.NewTicker(pollInterval * time.Second)
+	defer ticker.Stop()
+
 	for {
-		time.Sleep(pollInterval)
+		<-ticker.C
 
 		metrics, err := r.collector.GetMetrics()
 		if err != nil {
