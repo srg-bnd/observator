@@ -13,12 +13,22 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
-// Show repository
-type UpdateRepository interface {
-	SetGauge(string, float64) error
+// Reader repository
+type ReaderRepository interface {
 	GetGauge(string) (float64, error)
-	SetCounter(string, int64) error
 	GetCounter(string) (int64, error)
+}
+
+// Writer repository
+type WriterRepository interface {
+	SetGauge(string, float64) error
+	SetCounter(string, int64) error
+}
+
+// Update repository
+type UpdateRepository interface {
+	ReaderRepository
+	WriterRepository
 }
 
 // Update handler
