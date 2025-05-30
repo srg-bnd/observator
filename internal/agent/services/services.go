@@ -40,24 +40,24 @@ func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error 
 	metrics := make([]models.Metrics, 0, len(trackedMetrics))
 
 	for _, metricName := range trackedMetrics["counter"] {
-		value, err := s.storage.GetCounter(metricName)
-		if err != nil {
-			return err
+		if value, err := s.storage.GetCounter(metricName); err == nil {
+			metrics = append(metrics, models.Metrics{ID: metricName, MType: "counter", Delta: &value})
+		} else {
+			// TODO: send to logs
 		}
-
-		metrics = append(metrics, models.Metrics{ID: metricName, MType: "counter", Delta: &value})
 	}
 
 	for _, metricName := range trackedMetrics["gauge"] {
-		value, err := s.storage.GetGauge(metricName)
-		if err != nil {
-			return err
+		if value, err := s.storage.GetGauge(metricName); err == nil {
+			metrics = append(metrics, models.Metrics{ID: metricName, MType: "gauge", Value: &value})
+		} else {
+			// TODO: send to logs
 		}
-
-		metrics = append(metrics, models.Metrics{ID: metricName, MType: "gauge", Value: &value})
 	}
 
-	s.client.SendMetrics(metrics)
+	if len(metrics) > 0 {
+		s.client.SendMetrics(metrics)
+	}
 
 	return nil
 }
