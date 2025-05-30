@@ -113,14 +113,14 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 		metricValue = chi.URLParam(r, "metricValue")
 
 		switch metric.MType {
-		case "counter":
+		case models.CounterMType:
 			value, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
 				return nil, errors.New(invalidDataError)
 			}
 
 			metric.SetCounter(value)
-		case "gauge":
+		case models.GaugeMType:
 			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
 				return nil, errors.New(invalidDataError)
@@ -136,14 +136,14 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 // Processes the metric
 func (h *UpdateHandler) process(metric *models.Metrics) error {
 	switch metric.MType {
-	case "counter":
+	case models.CounterMType:
 		h.repository.SetCounter(metric.ID, metric.GetCounter())
 		delta, err := h.repository.GetCounter(metric.ID)
 		if err != nil {
 			return nil
 		}
 		metric.Delta = &delta
-	case "gauge":
+	case models.GaugeMType:
 		h.repository.SetGauge(metric.ID, metric.GetGauge())
 		value, err := h.repository.GetGauge(metric.ID)
 		if err != nil {

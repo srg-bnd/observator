@@ -84,8 +84,8 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 	}
 
 	// Find metric
-	switch metric.MType {
-	case "counter":
+	switch {
+	case metric.IsCounterMType():
 		delta, err := h.repository.GetCounter(metric.ID)
 		if err != nil {
 			if format == JSONFormat {
@@ -102,7 +102,7 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 		} else {
 			metric.Delta = &delta
 		}
-	case "gauge":
+	case metric.IsGaugeMType():
 		value, err := h.repository.GetGauge(metric.ID)
 		if err != nil {
 			if format == JSONFormat {
@@ -137,10 +137,10 @@ func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, f
 		}
 		body = data
 	} else {
-		switch metric.MType {
-		case "counter":
+		switch {
+		case metric.IsCounterMType():
 			body = []byte(metric.GetCounterAsString())
-		case "gauge":
+		case metric.IsGaugeMType():
 			body = []byte(metric.GetGaugeAsString())
 		}
 	}
