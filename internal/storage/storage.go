@@ -1,12 +1,14 @@
 // Storage for metrics
 package storage
 
+import "context"
+
 type Repositories interface {
-	SetGauge(string, float64) error
-	GetGauge(string) (float64, error)
-	SetCounter(string, int64) error
-	GetCounter(string) (int64, error)
-	SetBatchOfMetrics(map[string]int64, map[string]float64) error
+	SetGauge(context.Context, string, float64) error
+	GetGauge(context.Context, string) (float64, error)
+	SetCounter(context.Context, string, int64) error
+	GetCounter(context.Context, string) (int64, error)
+	SetBatchOfMetrics(context.Context, map[string]int64, map[string]float64) error
 }
 
 type (

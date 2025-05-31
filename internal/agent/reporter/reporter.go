@@ -2,6 +2,7 @@
 package reporter
 
 import (
+	"context"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/client"
@@ -32,7 +33,7 @@ func (r *Reporter) Start(reportInterval time.Duration) error {
 	for {
 		<-ticker.C
 
-		err := r.service.ValueSendingService(collector.TrackedMetrics)
+		err := r.service.ValueSendingService(context.Background(), collector.TrackedMetrics)
 		if err != nil {
 			return err
 		}

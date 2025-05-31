@@ -21,14 +21,14 @@ func NewDBStorage(db *sql.DB) *DBStorage {
 }
 
 // Changes gauge by key
-func (dbStore *DBStorage) SetGauge(key string, value float64) error {
-	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
+func (dbStore *DBStorage) SetGauge(ctx context.Context, key string, value float64) error {
+	tx, err := dbStore.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	tx.ExecContext(context.TODO(),
+	tx.ExecContext(ctx,
 		`INSERT INTO gauge_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
@@ -39,8 +39,8 @@ func (dbStore *DBStorage) SetGauge(key string, value float64) error {
 }
 
 // Returns gauge by key
-func (dbStore *DBStorage) GetGauge(key string) (float64, error) {
-	row := dbStore.db.QueryRowContext(context.TODO(),
+func (dbStore *DBStorage) GetGauge(ctx context.Context, key string) (float64, error) {
+	row := dbStore.db.QueryRowContext(ctx,
 		"SELECT value FROM gauge_metrics WHERE name = $1", key)
 
 	var value sql.NullFloat64
@@ -57,14 +57,14 @@ func (dbStore *DBStorage) GetGauge(key string) (float64, error) {
 }
 
 // Changes counter by key
-func (dbStore *DBStorage) SetCounter(key string, value int64) error {
-	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
+func (dbStore *DBStorage) SetCounter(ctx context.Context, key string, value int64) error {
+	tx, err := dbStore.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(context.TODO(),
+	_, err = tx.ExecContext(ctx,
 		`INSERT INTO counter_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
@@ -81,9 +81,9 @@ func (dbStore *DBStorage) SetCounter(key string, value int64) error {
 }
 
 // Returns gauge by counter
-func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
+func (dbStore *DBStorage) GetCounter(ctx context.Context, key string) (int64, error) {
 	// TODO: Add transaction
-	row := dbStore.db.QueryRowContext(context.TODO(),
+	row := dbStore.db.QueryRowContext(ctx,
 		"SELECT value FROM counter_metrics WHERE name = $1", key)
 
 	var value sql.NullInt64
@@ -100,15 +100,15 @@ func (dbStore *DBStorage) GetCounter(key string) (int64, error) {
 }
 
 // Batch update batch of metrics
-func (dbStore *DBStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
-	tx, err := dbStore.db.BeginTx(context.TODO(), nil)
+func (dbStore *DBStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+	tx, err := dbStore.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
 	for key, value := range counterMetrics {
-		_, err := tx.ExecContext(context.TODO(),
+		_, err := tx.ExecContext(ctx,
 			`INSERT INTO counter_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
@@ -120,7 +120,7 @@ func (dbStore *DBStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gau
 	}
 
 	for key, value := range gaugeMetrics {
-		_, err := tx.ExecContext(context.TODO(),
+		_, err := tx.ExecContext(ctx,
 			`INSERT INTO gauge_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)

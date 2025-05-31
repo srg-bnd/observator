@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"io"
@@ -55,8 +56,8 @@ func TestShowHandler(t *testing.T) {
 	ts := httptest.NewServer(NewRouter(storage, db))
 	defer ts.Close()
 
-	storage.SetCounter("correctKey", 1)
-	storage.SetGauge("correctKey", 1)
+	storage.SetCounter(context.Background(), "correctKey", 1)
+	storage.SetGauge(context.Background(), "correctKey", 1)
 
 	testCases := []struct {
 		data   DataRequest
@@ -86,8 +87,8 @@ func TestShowHandlerForJSON(t *testing.T) {
 	ts := httptest.NewServer(NewRouter(storage, db))
 	defer ts.Close()
 
-	storage.SetCounter("correctKey", 1)
-	storage.SetGauge("correctKey", 1)
+	storage.SetCounter(context.Background(), "correctKey", 1)
+	storage.SetGauge(context.Background(), "correctKey", 1)
 
 	testCases := []struct {
 		name   string
@@ -150,7 +151,7 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 	counterMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "counter", Delta: &counter})
 	gaugeMetrics, _ := json.Marshal(&models.Metrics{ID: "correctKey", MType: "gauge", Value: &gauge})
 	existCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &counter})
-	storage.SetCounter("existKey", counter)
+	storage.SetCounter(context.Background(), "existKey", counter)
 	wantExistCounterMetrics, _ := json.Marshal(&models.Metrics{ID: "existKey", MType: "counter", Delta: &existCounter})
 
 	testCases := []struct {

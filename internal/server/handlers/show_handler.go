@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -13,8 +14,8 @@ import (
 
 // Show repository
 type ShowRepository interface {
-	GetGauge(string) (float64, error)
-	GetCounter(string) (int64, error)
+	GetGauge(context.Context, string) (float64, error)
+	GetCounter(context.Context, string) (int64, error)
 }
 
 // Show handler
@@ -71,12 +72,12 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 	// Sets the value for the metric
 	switch {
 	case metric.IsCounterMType():
-		err := h.setCounterValue(metric, format)
+		err := h.setCounterValue(metric, r, format)
 		if err != nil {
 			return metric, err
 		}
 	case metric.IsGaugeMType():
-		err := h.setGaugeValue(metric, format)
+		err := h.setGaugeValue(metric, r, format)
 		if err != nil {
 			return metric, err
 		}
@@ -137,8 +138,8 @@ func (h *ShowHandler) buildMetric(r *http.Request, format string) (*models.Metri
 }
 
 // Sets the counter value for the metric
-func (h *ShowHandler) setCounterValue(metric *models.Metrics, format string) error {
-	delta, err := h.repository.GetCounter(metric.ID)
+func (h *ShowHandler) setCounterValue(metric *models.Metrics, r *http.Request, format string) error {
+	delta, err := h.repository.GetCounter(r.Context(), metric.ID)
 	if err != nil {
 		if format == JSONFormat {
 			var newDelta int64
@@ -159,8 +160,8 @@ func (h *ShowHandler) setCounterValue(metric *models.Metrics, format string) err
 }
 
 // Sets the gauge value for the metric
-func (h *ShowHandler) setGaugeValue(metric *models.Metrics, format string) error {
-	value, err := h.repository.GetGauge(metric.ID)
+func (h *ShowHandler) setGaugeValue(metric *models.Metrics, r *http.Request, format string) error {
+	value, err := h.repository.GetGauge(r.Context(), metric.ID)
 	if err != nil {
 		if format == JSONFormat {
 			var newValue float64

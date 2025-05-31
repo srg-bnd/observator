@@ -2,6 +2,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"sync"
 )
@@ -23,7 +24,7 @@ func NewMemStorage() *MemStorage {
 }
 
 // Changes gauge by key
-func (mStore *MemStorage) SetGauge(key string, value float64) error {
+func (mStore *MemStorage) SetGauge(ctx context.Context, key string, value float64) error {
 	mStore.mtx.Lock()
 	mStore.gauges[key] = gauge(value)
 	mStore.mtx.Unlock()
@@ -32,7 +33,7 @@ func (mStore *MemStorage) SetGauge(key string, value float64) error {
 }
 
 // Returns gauge by key
-func (mStore *MemStorage) GetGauge(key string) (float64, error) {
+func (mStore *MemStorage) GetGauge(ctx context.Context, key string) (float64, error) {
 	mStore.mtx.RLock()
 
 	value, ok := mStore.gauges[key]
@@ -46,7 +47,7 @@ func (mStore *MemStorage) GetGauge(key string) (float64, error) {
 }
 
 // Changes counter by key
-func (mStore *MemStorage) SetCounter(key string, value int64) error {
+func (mStore *MemStorage) SetCounter(ctx context.Context, key string, value int64) error {
 	mStore.mtx.Lock()
 	mStore.counters[key] += counter(value)
 	mStore.mtx.Unlock()
@@ -55,7 +56,7 @@ func (mStore *MemStorage) SetCounter(key string, value int64) error {
 }
 
 // Returns gauge by counter
-func (mStore *MemStorage) GetCounter(key string) (int64, error) {
+func (mStore *MemStorage) GetCounter(ctx context.Context, key string) (int64, error) {
 	mStore.mtx.RLock()
 	value, ok := mStore.counters[key]
 	if !ok {
@@ -67,13 +68,13 @@ func (mStore *MemStorage) GetCounter(key string) (int64, error) {
 }
 
 // Batch update batch of metrics
-func (mStore *MemStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+func (mStore *MemStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
 	for key, value := range counterMetrics {
-		mStore.SetCounter(key, value)
+		mStore.SetCounter(ctx, key, value)
 	}
 
 	for key, value := range gaugeMetrics {
-		mStore.SetGauge(key, value)
+		mStore.SetGauge(ctx, key, value)
 	}
 
 	return nil

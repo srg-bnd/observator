@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,14 +16,14 @@ import (
 
 // Reader repository
 type ReaderRepository interface {
-	GetGauge(string) (float64, error)
-	GetCounter(string) (int64, error)
+	GetGauge(context.Context, string) (float64, error)
+	GetCounter(context.Context, string) (int64, error)
 }
 
 // Writer repository
 type WriterRepository interface {
-	SetGauge(string, float64) error
-	SetCounter(string, int64) error
+	SetGauge(context.Context, string, float64) error
+	SetCounter(context.Context, string, int64) error
 }
 
 // Update repository
@@ -53,7 +54,7 @@ func (h *UpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != h.process(metric) {
+	if err != h.process(metric, r) {
 		handleError(w, err)
 		return
 	}
@@ -74,7 +75,7 @@ func (h *UpdateHandler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != h.process(metric) {
+	if err != h.process(metric, r) {
 		handleError(w, err)
 		return
 	}
@@ -144,18 +145,18 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 }
 
 // Processes the metric
-func (h *UpdateHandler) process(metric *models.Metrics) error {
+func (h *UpdateHandler) process(metric *models.Metrics, r *http.Request) error {
 	switch metric.MType {
 	case models.CounterMType:
-		h.repository.SetCounter(metric.ID, metric.GetCounter())
-		delta, err := h.repository.GetCounter(metric.ID)
+		h.repository.SetCounter(r.Context(), metric.ID, metric.GetCounter())
+		delta, err := h.repository.GetCounter(r.Context(), metric.ID)
 		if err != nil {
 			return nil
 		}
 		metric.Delta = &delta
 	case models.GaugeMType:
-		h.repository.SetGauge(metric.ID, metric.GetGauge())
-		value, err := h.repository.GetGauge(metric.ID)
+		h.repository.SetGauge(r.Context(), metric.ID, metric.GetGauge())
+		value, err := h.repository.GetGauge(r.Context(), metric.ID)
 		if err != nil {
 			return nil
 		}

@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/models"
@@ -9,8 +10,8 @@ import (
 
 // Index repository
 type IndexRepository interface {
-	GetGauge(string) (float64, error)
-	GetCounter(string) (int64, error)
+	GetGauge(context.Context, string) (float64, error)
+	GetCounter(context.Context, string) (int64, error)
 }
 
 // Index handler
@@ -29,7 +30,7 @@ func NewIndexHandler(repository IndexRepository) *IndexHandler {
 func (h *IndexHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, HTMLFormat)
 
-	metricsByMType, err := h.getMetricsByMType()
+	metricsByMType, err := h.getMetricsByMType(r)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -42,20 +43,20 @@ func (h *IndexHandler) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Returns metrics from repository
-func (h *IndexHandler) getMetricsByMType() (map[string][]models.Metrics, error) {
+func (h *IndexHandler) getMetricsByMType(r *http.Request) (map[string][]models.Metrics, error) {
 	metricsByMType := make(map[string][]models.Metrics, 0)
 	metricsByMType["counter"] = make([]models.Metrics, 0)
 	metricsByMType["gauge"] = make([]models.Metrics, 0)
 
 	for _, ID := range models.TrackedMetrics["counter"] {
-		counter, err := h.repository.GetCounter(ID)
+		counter, err := h.repository.GetCounter(r.Context(), ID)
 		if err == nil {
 			metricsByMType["counter"] = append(metricsByMType["counter"], models.Metrics{MType: "counter", ID: ID, Delta: &counter})
 		}
 	}
 
 	for _, ID := range models.TrackedMetrics["gauge"] {
-		gauge, err := h.repository.GetGauge(ID)
+		gauge, err := h.repository.GetGauge(r.Context(), ID)
 		if err == nil {
 			metricsByMType["gauge"] = append(metricsByMType["gauge"], models.Metrics{MType: "gauge", ID: ID, Value: &gauge})
 		}

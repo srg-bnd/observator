@@ -2,6 +2,7 @@
 package poller
 
 import (
+	"context"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
@@ -38,7 +39,7 @@ func (r *Poller) Start(pollInterval time.Duration) error {
 			return err
 		}
 
-		err = r.services.MetricsUpdateService(metrics)
+		err = r.services.MetricsUpdateService(context.Background(), metrics)
 		if err != nil {
 			return err
 		}

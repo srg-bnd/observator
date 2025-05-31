@@ -3,6 +3,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -52,7 +53,7 @@ func NewFileStorage(fileStoragePath string, storeInterval int, restore bool) *Fi
 }
 
 // Changes gauge by key
-func (fStore *FileStorage) SetGauge(key string, value float64) error {
+func (fStore *FileStorage) SetGauge(ctx context.Context, key string, value float64) error {
 	fStore.gauges[key] = gauge(value)
 	if err := fStore.Save(); err != nil {
 		return err
@@ -62,7 +63,7 @@ func (fStore *FileStorage) SetGauge(key string, value float64) error {
 }
 
 // Returns gauge by key
-func (fStore *FileStorage) GetGauge(key string) (float64, error) {
+func (fStore *FileStorage) GetGauge(ctx context.Context, key string) (float64, error) {
 	value, ok := fStore.gauges[key]
 	if !ok {
 		return -1, errors.New("unknown")
@@ -72,7 +73,7 @@ func (fStore *FileStorage) GetGauge(key string) (float64, error) {
 }
 
 // Changes counter by key
-func (fStore *FileStorage) SetCounter(key string, value int64) error {
+func (fStore *FileStorage) SetCounter(ctx context.Context, key string, value int64) error {
 	fStore.counters[key] += counter(value)
 	if err := fStore.Save(); err != nil {
 		return err
@@ -81,7 +82,7 @@ func (fStore *FileStorage) SetCounter(key string, value int64) error {
 }
 
 // Returns gauge by counter
-func (fStore *FileStorage) GetCounter(key string) (int64, error) {
+func (fStore *FileStorage) GetCounter(ctx context.Context, key string) (int64, error) {
 	value, ok := fStore.counters[key]
 	if !ok {
 		return -1, errors.New("unknown")
@@ -91,15 +92,15 @@ func (fStore *FileStorage) GetCounter(key string) (int64, error) {
 }
 
 // Batch update batch of metrics
-func (fStore *FileStorage) SetBatchOfMetrics(counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
+func (fStore *FileStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics map[string]int64, gaugeMetrics map[string]float64) error {
 	// TODO: needs optimization (all parameters are re-saved in each iteration)
 	for key, value := range counterMetrics {
-		fStore.SetCounter(key, value)
+		fStore.SetCounter(ctx, key, value)
 	}
 
 	// TODO: needs optimization (all parameters are re-saved in each iteration)
 	for key, value := range gaugeMetrics {
-		fStore.SetGauge(key, value)
+		fStore.SetGauge(ctx, key, value)
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 // Updates repository
 type BatchUpdateRepository interface {
-	SetBatchOfMetrics(map[string]int64, map[string]float64) error
+	SetBatchOfMetrics(context.Context, map[string]int64, map[string]float64) error
 }
 
 // Updates handler
@@ -59,7 +60,7 @@ func (h *BatchUpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.repository.SetBatchOfMetrics(counterMetrics, gaugeMetrics); err != nil {
+	if err := h.repository.SetBatchOfMetrics(r.Context(), counterMetrics, gaugeMetrics); err != nil {
 		handleError(w, err)
 		return
 	}

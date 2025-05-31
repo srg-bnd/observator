@@ -2,6 +2,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/srg-bnd/observator/internal/agent/client"
 	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/agent/models"
@@ -23,31 +25,31 @@ func NewService(storage storage.Repositories, client *client.Client) *Service {
 }
 
 // Updates metrics in the storage
-func (s *Service) MetricsUpdateService(metrics *collector.Metrics) error {
+func (s *Service) MetricsUpdateService(ctx context.Context, metrics *collector.Metrics) error {
 	for metricName, metricValue := range metrics.Counter {
-		s.storage.SetCounter(metricName, metricValue)
+		s.storage.SetCounter(ctx, metricName, metricValue)
 	}
 
 	for metricName, metricValue := range metrics.Gauge {
-		s.storage.SetGauge(metricName, metricValue)
+		s.storage.SetGauge(ctx, metricName, metricValue)
 	}
 
 	return nil
 }
 
 // Collects metrics and sends them to the server
-func (s *Service) ValueSendingService(trackedMetrics map[string][]string) error {
+func (s *Service) ValueSendingService(ctx context.Context, trackedMetrics map[string][]string) error {
 	metrics := make([]models.Metrics, 0, len(trackedMetrics))
 
 	for _, metricName := range trackedMetrics["counter"] {
-		if value, err := s.storage.GetCounter(metricName); err == nil {
+		if value, err := s.storage.GetCounter(ctx, metricName); err == nil {
 			metrics = append(metrics, models.Metrics{ID: metricName, MType: "counter", Delta: &value})
 		}
 		// TODO: send to logs if error
 	}
 
 	for _, metricName := range trackedMetrics["gauge"] {
-		if value, err := s.storage.GetGauge(metricName); err == nil {
+		if value, err := s.storage.GetGauge(ctx, metricName); err == nil {
 			metrics = append(metrics, models.Metrics{ID: metricName, MType: "gauge", Value: &value})
 		}
 		// TODO: send to logs if error
