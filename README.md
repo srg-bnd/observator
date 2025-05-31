@@ -1,27 +1,29 @@
 # Observator
 
-Сервис сбора метрик и алертинга
+Metrics collection and alerting service
 
-## Обновление шаблона
+## For students
 
-Чтобы иметь возможность получать обновления автотестов и других частей шаблона, выполните команду:
+### Updating the template
 
-```
+To be able to receive updates to autotests and other parts of the template, run the command:
+
+```bash
 git remote add -m main template https://github.com/Yandex-Practicum/go-musthave-metrics-tpl.git
 ```
 
-Для обновления кода автотестов выполните команду:
+To update the autotest code, run the command:
 
-```
+```bash
 git fetch template && git checkout template/main .github
 ```
 
-Затем добавьте полученные изменения в свой репозиторий.
+Then add the received changes to your repository.
 
-## Запуск автотестов
+### Launching autotests
 
-Для успешного запуска автотестов называйте ветки `iter<number>`, где `<number>` — порядковый номер инкремента. Например, в ветке с названием `iter4` запустятся автотесты для инкрементов с первого по четвёртый.
+To successfully run autotests, name the branches `iter<number>`, where `<number>` is the sequence number of the increment. For example, in the branch named `iter4`, autotests will be launched for increments from the first to the fourth.
 
-При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
+When you merge a branch with an increment into the main branch `main`, all autotests will be run.
 
-Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+Read more about local and automatic startup in [README autotests](https://github.com/Yandex-Practicum/go-autotests).

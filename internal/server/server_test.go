@@ -1,8 +1,11 @@
 package server
 
 import (
+	"database/sql"
 	"testing"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/srg-bnd/observator/internal/server/router"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,6 +19,12 @@ func TestGetMux(t *testing.T) {
 }
 
 func TestNewServer(t *testing.T) {
-	server := NewServer(storage.NewMemStorage("", 0, false))
+	db, err := sql.Open("pgx", "temp.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	server := NewServer(router.NewRouter(storage.NewMemStorage(), db))
 	assert.IsType(t, server, &Server{})
 }

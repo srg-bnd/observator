@@ -10,8 +10,10 @@ import (
 )
 
 func TestIndexHandler(t *testing.T) {
-	storage := storage.NewMemStorage("", 0, false)
-	handler := NewHandler(storage)
+	db := getTempDB()
+	defer db.Close()
+
+	storage := storage.NewMemStorage()
 
 	testCases := []struct {
 		method       string
@@ -25,21 +27,9 @@ func TestIndexHandler(t *testing.T) {
 			r := httptest.NewRequest(tc.method, "/", nil)
 			w := httptest.NewRecorder()
 
-			handler.IndexHandler(w, r)
+			NewIndexHandler(storage).Handler(w, r)
 
 			assert.Equal(t, tc.expectedCode, w.Code)
 		})
 	}
-}
-
-func TestGetMetricsByMTypeForIndex(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestRepresentMetricsByMTypeForIndex(t *testing.T) {
-	t.Logf("TODO")
-}
-
-func TestHandleErrorForIndex(t *testing.T) {
-	t.Logf("TODO")
 }

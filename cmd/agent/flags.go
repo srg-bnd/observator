@@ -1,4 +1,4 @@
-// Flags
+// Flags & envs
 package main
 
 import (
@@ -7,14 +7,17 @@ import (
 	"strconv"
 )
 
+// Application configs
 type AppConfigs struct {
-	pollInterval   int
-	reportInterval int
-	serverAddr     string
+	pollInterval   int    // poll interval
+	reportInterval int    // report interval
+	serverAddr     string // server address
 }
 
+// Global app configs
 var appConfigs = AppConfigs{}
 
+// Parses flags from the console or envs
 func parseFlags() {
 	flag.IntVar(&appConfigs.pollInterval, "p", 2, "pollInterval – frequency (seconds) of metric polling")
 	flag.IntVar(&appConfigs.reportInterval, "r", 10, "reportInterval – frequency (seconds) of sending values to the server")

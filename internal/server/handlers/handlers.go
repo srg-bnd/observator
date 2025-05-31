@@ -1,55 +1,22 @@
-// Handlers & Router for server
+// Handlers
 package handlers
 
 import (
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/srg-bnd/observator/internal/server/logger"
-	"github.com/srg-bnd/observator/internal/server/middleware"
-	"github.com/srg-bnd/observator/internal/server/services"
-	"github.com/srg-bnd/observator/internal/storage"
 )
 
 const (
 	// Errors
-	serverError      = "serverError"
-	invalidDataError = "invalidDataError"
+	invalidDataError = "invalid data"
+	invalidNameError = "invalid name"
+	notFoundError    = "not found"
+	serverError      = "server error"
 
 	// Formats
 	JSONFormat = "json"
 	HTMLFormat = "text/html"
 	TextFormat = "text"
 )
-
-type Handler struct {
-	service *services.Service
-	storage storage.Repositories
-}
-
-// Returns new Handler
-func NewHandler(storage storage.Repositories) *Handler {
-	return &Handler{
-		service: services.NewService(storage),
-		storage: storage,
-	}
-}
-
-// Returns Router for HTTP Server
-func (h *Handler) GetRouter() chi.Router {
-	r := chi.NewRouter()
-
-	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
-	r.Get("/", h.IndexHandler)
-	r.Get("/value/{metricType}/{metricName}", h.ShowHandler)
-	r.Post("/value", h.ShowAsJSONHandler)
-	r.Post("/value/", h.ShowAsJSONHandler)
-	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
-	r.Post("/update", h.UpdateAsJSONHandler)
-	r.Post("/update/", h.UpdateAsJSONHandler)
-
-	return r
-}
 
 // Set content type
 func setContentType(w http.ResponseWriter, format string) {
@@ -70,6 +37,7 @@ func handleError(w http.ResponseWriter, err error) {
 		w.WriteHeader(http.StatusInternalServerError)
 	case invalidDataError:
 		w.WriteHeader(http.StatusBadRequest)
+	case notFoundError:
+		w.WriteHeader(http.StatusNotFound)
 	}
-
 }

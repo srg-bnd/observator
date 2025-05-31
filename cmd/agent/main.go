@@ -1,4 +1,4 @@
-// Agent for metrics collection and alerting service
+// Agent that collects the metrics and sends them to the server
 package main
 
 import (
@@ -8,15 +8,15 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+// Application
 type App struct {
 	agent *agent.Agent
 }
 
+// Returns a new application
 func NewApp() *App {
-	// HACK
-	storage := storage.NewMemStorage("", 0, false)
 	return &App{
-		agent: agent.NewAgent(storage, appConfigs.serverAddr),
+		agent: agent.NewAgent(storage.NewMemStorage(), appConfigs.serverAddr),
 	}
 }
 

@@ -1,8 +1,9 @@
-// Show Handlers (Metrics)
+// Show Handler
 package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -11,113 +12,98 @@ import (
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
-const (
-	notExistError = "notExistError"
-)
+// Show repository
+type ShowRepository interface {
+	GetGauge(context.Context, string) (float64, error)
+	GetCounter(context.Context, string) (int64, error)
+}
 
-// GET /value/{metricType}/{metricName}
-func (h *Handler) ShowHandler(w http.ResponseWriter, r *http.Request) {
+// Show handler
+type ShowHandler struct {
+	repository ShowRepository
+}
+
+// Returns new show handler
+func NewShowHandler(repository ShowRepository) *ShowHandler {
+	return &ShowHandler{
+		repository: repository,
+	}
+}
+
+// Processes the request GET /value/{metricType}/{metricName}
+func (h *ShowHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, TextFormat)
 
-	metrics, err := findMetricsForShow(h, r, TextFormat)
+	metric, err := h.findMetric(r, TextFormat)
 	if err != nil {
-		handleErrorForShow(w, err)
+		handleError(w, err)
 		return
 	}
 
-	if err != representForShow(w, r, metrics, TextFormat) {
-		handleErrorForShow(w, err)
+	if err != h.represent(w, metric, TextFormat) {
+		handleError(w, err)
 		return
 	}
 }
 
-// GET /value
-func (h *Handler) ShowAsJSONHandler(w http.ResponseWriter, r *http.Request) {
+// Processes the request GET /value (JSON)
+func (h *ShowHandler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, JSONFormat)
 
-	metrics, err := findMetricsForShow(h, r, JSONFormat)
+	metric, err := h.findMetric(r, JSONFormat)
 	if err != nil {
-		handleErrorForShow(w, err)
+		handleError(w, err)
 		return
 	}
 
-	if err != representForShow(w, r, metrics, JSONFormat) {
-		handleErrorForShow(w, err)
+	if err != h.represent(w, metric, JSONFormat) {
+		handleError(w, err)
 		return
 	}
 }
 
-// Helpers
-
-func findMetricsForShow(h *Handler, r *http.Request, format string) (*models.Metrics, error) {
-	var metrics models.Metrics
-
-	// Build metrics
-	if format == JSONFormat {
-		var buf bytes.Buffer
-		_, err := buf.ReadFrom(r.Body)
-
-		if err != nil {
-			return &metrics, errors.New(invalidDataError)
-		}
-
-		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-			return &metrics, errors.New(invalidDataError)
-		}
-	} else {
-		metrics.MType = chi.URLParam(r, "metricType")
-		metrics.ID = chi.URLParam(r, "metricName")
+// Returns metric from repository
+func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metrics, error) {
+	metric, err := h.buildMetric(r, format)
+	if err != nil {
+		return metric, err
 	}
 
-	// Find metrics
-	switch metrics.MType {
-	case "counter":
-		delta, err := h.storage.GetCounter(metrics.ID)
+	// Sets the value for the metric
+	switch {
+	case metric.IsCounterMType():
+		err := h.setCounterValue(metric, r, format)
 		if err != nil {
-			if format == JSONFormat {
-				zero := int64(0)
-				metrics.Delta = &zero
-			} else {
-				return &metrics, errors.New(notExistError)
-			}
-		} else {
-			metrics.Delta = &delta
+			return metric, err
 		}
-	case "gauge":
-		value, err := h.storage.GetGauge(metrics.ID)
+	case metric.IsGaugeMType():
+		err := h.setGaugeValue(metric, r, format)
 		if err != nil {
-			if format == JSONFormat {
-				zero := float64(0)
-				metrics.Value = &zero
-			} else {
-				return &metrics, errors.New(notExistError)
-			}
-		} else {
-			metrics.Value = &value
+			return metric, err
 		}
 	default:
-		return &metrics, errors.New(notExistError)
+		return metric, errors.New(notFoundError)
 	}
 
-	return &metrics, nil
+	return metric, nil
 }
 
-func representForShow(w http.ResponseWriter, _ *http.Request, metrics *models.Metrics, format string) error {
+// Generates a response
+func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, format string) error {
 	var body []byte
 
 	if format == JSONFormat {
-		data, err := json.Marshal(metrics)
+		data, err := json.Marshal(metric)
 		if err != nil {
 			return errors.New(serverError)
 		}
 		body = data
 	} else {
-		switch metrics.MType {
-		case "counter":
-			body = []byte(metrics.GetCounterAsString())
-		case "gauge":
-			body = []byte(metrics.GetGaugeAsString())
+		switch {
+		case metric.IsCounterMType():
+			body = []byte(metric.GetCounterAsString())
+		case metric.IsGaugeMType():
+			body = []byte(metric.GetGaugeAsString())
 		}
 	}
 
@@ -127,13 +113,70 @@ func representForShow(w http.ResponseWriter, _ *http.Request, metrics *models.Me
 	return nil
 }
 
-func handleErrorForShow(w http.ResponseWriter, err error) {
-	switch err.Error() {
-	case invalidDataError:
-		w.WriteHeader(http.StatusBadRequest)
-	case notExistError:
-		w.WriteHeader(http.StatusNotFound)
-	default:
-		handleError(w, err)
+// Builds a metric
+func (h *ShowHandler) buildMetric(r *http.Request, format string) (*models.Metrics, error) {
+	var metric models.Metrics
+
+	if format == JSONFormat {
+		var buf bytes.Buffer
+		_, err := buf.ReadFrom(r.Body)
+
+		if err != nil {
+			return &metric, errors.New(invalidDataError)
+		}
+
+		// TODO: use `json.NewDecoder(req.Body).Decode`
+		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
+			return &metric, errors.New(invalidDataError)
+		}
+	} else {
+		metric.MType = chi.URLParam(r, "metricType")
+		metric.ID = chi.URLParam(r, "metricName")
 	}
+
+	return &metric, nil
+}
+
+// Sets the counter value for the metric
+func (h *ShowHandler) setCounterValue(metric *models.Metrics, r *http.Request, format string) error {
+	delta, err := h.repository.GetCounter(r.Context(), metric.ID)
+	if err != nil {
+		if format == JSONFormat {
+			var newDelta int64
+			if metric.Delta == nil {
+				newDelta = int64(0)
+			} else {
+				newDelta = int64(*metric.Delta)
+			}
+			metric.Delta = &newDelta
+		} else {
+			return errors.New(notFoundError)
+		}
+	} else {
+		metric.Delta = &delta
+	}
+
+	return nil
+}
+
+// Sets the gauge value for the metric
+func (h *ShowHandler) setGaugeValue(metric *models.Metrics, r *http.Request, format string) error {
+	value, err := h.repository.GetGauge(r.Context(), metric.ID)
+	if err != nil {
+		if format == JSONFormat {
+			var newValue float64
+			if metric.Value == nil {
+				newValue = float64(0)
+			} else {
+				newValue = float64(*metric.Value)
+			}
+			metric.Value = &newValue
+		} else {
+			return errors.New(notFoundError)
+		}
+	} else {
+		metric.Value = &value
+	}
+
+	return nil
 }

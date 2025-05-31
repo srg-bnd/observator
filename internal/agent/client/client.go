@@ -14,11 +14,13 @@ import (
 	"github.com/srg-bnd/observator/internal/agent/models"
 )
 
+// Client
 type Client struct {
 	client  *resty.Client
 	baseURL string
 }
 
+// Returns a new client
 func NewClient(baseURL string) *Client {
 	return &Client{
 		client: resty.New(),
@@ -27,17 +29,61 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) SendMetric(metrics *models.Metrics) {
+// Sends batch of metrics to the server
+func (c *Client) SendMetrics(metrics []models.Metrics) error {
 	data, err := json.Marshal(&metrics)
 	if err != nil {
-		// log.Println(err)
-		return
+		return err
+	}
+
+	// Compress data
+	compressedData, err := compress(data)
+	if err != nil {
+		return err
+	}
+
+	// Retriable errors
+	repetitionIntervals := [3]int{1, 3, 5}
+	currentRepetitionInterval := -1
+
+	// Init client
+	c.client.
+		SetRetryCount(len(repetitionIntervals)).
+		SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
+			currentRepetitionInterval++
+			return time.Duration(repetitionIntervals[currentRepetitionInterval]) * time.Second, nil
+		}).
+		SetRetryMaxWaitTime(5 * time.Second)
+
+	// Execute a request
+	res, err := c.client.R().SetBody(compressedData).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept-Encoding", "gzip").
+		SetHeader("Content-Encoding", "gzip").
+		Post(c.baseURL + "/updates")
+
+	if err != nil {
+		return err
+	}
+
+	// Decompress response
+	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
+		decompress(res.Body())
+	}
+
+	return nil
+}
+
+// [deprecated] Sends a metric to the server
+func (c *Client) SendMetric(metrics *models.Metrics) error {
+	data, err := json.Marshal(&metrics)
+	if err != nil {
+		return err
 	}
 
 	compressedData, err := compress(data)
 	if err != nil {
-		// log.Println(err)
-		return
+		return err
 	}
 
 	c.client.
@@ -52,15 +98,19 @@ func (c *Client) SendMetric(metrics *models.Metrics) {
 		Post(c.baseURL + "/update")
 
 	if err != nil {
-		// log.Println(err)
-		return
+		return err
 	}
 
 	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
 		decompress(res.Body())
 	}
+
+	return nil
 }
 
+// Helpers
+
+// Compress data
 func compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
 
@@ -79,6 +129,7 @@ func compress(data []byte) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// Decompress data
 func decompress(compressedData []byte) ([]byte, error) {
 	r := flate.NewReader(bytes.NewReader(compressedData))
 	defer r.Close()

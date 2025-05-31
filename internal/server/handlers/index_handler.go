@@ -1,44 +1,62 @@
-// Index Handlers (Metrics)
+// Index Handler
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/models"
 )
 
-// GET /
-func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
+// Index repository
+type IndexRepository interface {
+	GetGauge(context.Context, string) (float64, error)
+	GetCounter(context.Context, string) (int64, error)
+}
+
+// Index handler
+type IndexHandler struct {
+	repository IndexRepository
+}
+
+// Returns new index handler
+func NewIndexHandler(repository IndexRepository) *IndexHandler {
+	return &IndexHandler{
+		repository: repository,
+	}
+}
+
+// Processes the request
+func (h *IndexHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	setContentType(w, HTMLFormat)
 
-	metricsByMType, err := getMetricsByMTypeForIndex(h, r)
+	metricsByMType, err := h.getMetricsByMType(r)
 	if err != nil {
-		handleErrorForIndex(w, err)
+		handleError(w, err)
 		return
 	}
 
-	if err != representForIndex(w, r, metricsByMType) {
-		handleErrorForIndex(w, err)
+	if err != h.represent(w, metricsByMType) {
+		handleError(w, err)
 		return
 	}
 }
 
-// Helpers
-
-func getMetricsByMTypeForIndex(h *Handler, _ *http.Request) (map[string][]models.Metrics, error) {
+// Returns metrics from repository
+func (h *IndexHandler) getMetricsByMType(r *http.Request) (map[string][]models.Metrics, error) {
 	metricsByMType := make(map[string][]models.Metrics, 0)
 	metricsByMType["counter"] = make([]models.Metrics, 0)
 	metricsByMType["gauge"] = make([]models.Metrics, 0)
 
 	for _, ID := range models.TrackedMetrics["counter"] {
-		counter, err := h.storage.GetCounter(ID)
+		counter, err := h.repository.GetCounter(r.Context(), ID)
 		if err == nil {
 			metricsByMType["counter"] = append(metricsByMType["counter"], models.Metrics{MType: "counter", ID: ID, Delta: &counter})
 		}
 	}
 
 	for _, ID := range models.TrackedMetrics["gauge"] {
-		gauge, err := h.storage.GetGauge(ID)
+		gauge, err := h.repository.GetGauge(r.Context(), ID)
 		if err == nil {
 			metricsByMType["gauge"] = append(metricsByMType["gauge"], models.Metrics{MType: "gauge", ID: ID, Value: &gauge})
 		}
@@ -47,7 +65,8 @@ func getMetricsByMTypeForIndex(h *Handler, _ *http.Request) (map[string][]models
 	return metricsByMType, nil
 }
 
-func representForIndex(w http.ResponseWriter, _ *http.Request, metricsByMType map[string][]models.Metrics) error {
+// Generates a response
+func (h *IndexHandler) represent(w http.ResponseWriter, metricsByMType map[string][]models.Metrics) error {
 	var body string
 
 	for MType, allMetrics := range metricsByMType {
@@ -66,8 +85,4 @@ func representForIndex(w http.ResponseWriter, _ *http.Request, metricsByMType ma
 	w.Write([]byte(body))
 
 	return nil
-}
-
-func handleErrorForIndex(w http.ResponseWriter, err error) {
-	handleError(w, err)
 }

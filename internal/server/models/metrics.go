@@ -5,6 +5,13 @@ import (
 	"strconv"
 )
 
+const (
+	CounterMType = "counter"
+	GaugeMType   = "gauge"
+)
+
+var MetricsMTypes = []string{CounterMType, GaugeMType}
+
 type Metrics struct {
 	ID    string   `json:"id"`
 	MType string   `json:"type"`
@@ -15,8 +22,6 @@ type Metrics struct {
 func NewMetrics() *Metrics {
 	return &Metrics{}
 }
-
-var MetricsMTypes = []string{"counter", "gauge"}
 
 var TrackedMetrics = map[string][]string{
 	"counter": {
@@ -83,4 +88,14 @@ func (m *Metrics) GetGaugeAsString() string {
 	}
 
 	return strconv.FormatFloat(*m.Value, 'f', -1, 64)
+}
+
+// Helpers
+
+func (m *Metrics) IsCounterMType() bool {
+	return m.MType == CounterMType
+}
+
+func (m *Metrics) IsGaugeMType() bool {
+	return m.MType == GaugeMType
 }

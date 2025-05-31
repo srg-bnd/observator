@@ -1,4 +1,4 @@
-// Collector
+// Collects metrics
 package collector
 
 import (
@@ -6,17 +6,19 @@ import (
 	"runtime"
 )
 
+// Collector
 type Collector struct {
-	memStats runtime.MemStats
-	// HACK
+	memStats  runtime.MemStats
 	pollCount int64
 }
 
+// Metrics
 type Metrics struct {
 	Counter map[string]int64
 	Gauge   map[string]float64
 }
 
+// Tracked metrics
 var TrackedMetrics = map[string][]string{
 	"counter": {
 		"PollCount",
@@ -53,12 +55,14 @@ var TrackedMetrics = map[string][]string{
 	},
 }
 
+// Returns new collector
 func NewCollector() *Collector {
 	return &Collector{
 		pollCount: 0,
 	}
 }
 
+// Returns current metrics
 func (c *Collector) GetMetrics() (*Metrics, error) {
 	runtime.ReadMemStats(&c.memStats)
 
