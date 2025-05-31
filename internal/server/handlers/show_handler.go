@@ -63,67 +63,28 @@ func (h *ShowHandler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 
 // Returns metric from repository
 func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metrics, error) {
-	var metric models.Metrics
-
-	// Build metric
-	if format == JSONFormat {
-		var buf bytes.Buffer
-		_, err := buf.ReadFrom(r.Body)
-
-		if err != nil {
-			return &metric, errors.New(invalidDataError)
-		}
-
-		// TODO: use `json.NewDecoder(req.Body).Decode`
-		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
-			return &metric, errors.New(invalidDataError)
-		}
-	} else {
-		metric.MType = chi.URLParam(r, "metricType")
-		metric.ID = chi.URLParam(r, "metricName")
+	metric, err := h.buildMetric(r, format)
+	if err != nil {
+		return metric, err
 	}
 
-	// Find metric
+	// Sets the value for the metric
 	switch {
 	case metric.IsCounterMType():
-		delta, err := h.repository.GetCounter(metric.ID)
+		err := h.setCounterValue(metric, format)
 		if err != nil {
-			if format == JSONFormat {
-				var newDelta int64
-				if metric.Delta == nil {
-					newDelta = int64(0)
-				} else {
-					newDelta = int64(*metric.Delta)
-				}
-				metric.Delta = &newDelta
-			} else {
-				return &metric, errors.New(notFoundError)
-			}
-		} else {
-			metric.Delta = &delta
+			return metric, err
 		}
 	case metric.IsGaugeMType():
-		value, err := h.repository.GetGauge(metric.ID)
+		err := h.setGaugeValue(metric, format)
 		if err != nil {
-			if format == JSONFormat {
-				var newValue float64
-				if metric.Value == nil {
-					newValue = float64(0)
-				} else {
-					newValue = float64(*metric.Value)
-				}
-				metric.Value = &newValue
-			} else {
-				return &metric, errors.New(notFoundError)
-			}
-		} else {
-			metric.Value = &value
+			return metric, err
 		}
 	default:
-		return &metric, errors.New(notFoundError)
+		return metric, errors.New(notFoundError)
 	}
 
-	return &metric, nil
+	return metric, nil
 }
 
 // Generates a response
@@ -147,6 +108,74 @@ func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, f
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+
+	return nil
+}
+
+// Builds a metric
+func (h *ShowHandler) buildMetric(r *http.Request, format string) (*models.Metrics, error) {
+	var metric models.Metrics
+
+	if format == JSONFormat {
+		var buf bytes.Buffer
+		_, err := buf.ReadFrom(r.Body)
+
+		if err != nil {
+			return &metric, errors.New(invalidDataError)
+		}
+
+		// TODO: use `json.NewDecoder(req.Body).Decode`
+		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
+			return &metric, errors.New(invalidDataError)
+		}
+	} else {
+		metric.MType = chi.URLParam(r, "metricType")
+		metric.ID = chi.URLParam(r, "metricName")
+	}
+
+	return &metric, nil
+}
+
+// Sets the counter value for the metric
+func (h *ShowHandler) setCounterValue(metric *models.Metrics, format string) error {
+	delta, err := h.repository.GetCounter(metric.ID)
+	if err != nil {
+		if format == JSONFormat {
+			var newDelta int64
+			if metric.Delta == nil {
+				newDelta = int64(0)
+			} else {
+				newDelta = int64(*metric.Delta)
+			}
+			metric.Delta = &newDelta
+		} else {
+			return errors.New(notFoundError)
+		}
+	} else {
+		metric.Delta = &delta
+	}
+
+	return nil
+}
+
+// Sets the gauge value for the metric
+func (h *ShowHandler) setGaugeValue(metric *models.Metrics, format string) error {
+	value, err := h.repository.GetGauge(metric.ID)
+	if err != nil {
+		if format == JSONFormat {
+			var newValue float64
+			if metric.Value == nil {
+				newValue = float64(0)
+			} else {
+				newValue = float64(*metric.Value)
+			}
+			metric.Value = &newValue
+		} else {
+			return errors.New(notFoundError)
+		}
+	} else {
+		metric.Value = &value
+	}
 
 	return nil
 }
