@@ -12,6 +12,7 @@ type AppConfigs struct {
 	pollInterval   int    // poll interval
 	reportInterval int    // report interval
 	serverAddr     string // server address
+	encryptionKey  string // encryption key
 }
 
 // Global app configs
@@ -22,6 +23,7 @@ func parseFlags() {
 	flag.IntVar(&appConfigs.pollInterval, "p", 2, "pollInterval – frequency (seconds) of metric polling")
 	flag.IntVar(&appConfigs.reportInterval, "r", 10, "reportInterval – frequency (seconds) of sending values to the server")
 	flag.StringVar(&appConfigs.serverAddr, "a", "localhost:8080", "address and port to run server")
+	flag.StringVar(&appConfigs.encryptionKey, "k", "", "encryption key")
 
 	flag.Parse()
 
@@ -35,5 +37,9 @@ func parseFlags() {
 
 	if envServerAddr := os.Getenv("ADDRESS"); envServerAddr != "" {
 		appConfigs.serverAddr = envServerAddr
+	}
+
+	if envEncryptionKey := os.Getenv("KEY"); envEncryptionKey != "" {
+		appConfigs.encryptionKey = envEncryptionKey
 	}
 }
