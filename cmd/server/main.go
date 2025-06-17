@@ -14,37 +14,39 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-func main() {
-	parseFlags()
+func init() {
+	config.Flags.ParseFlags()
+}
 
+func main() {
 	// Init global logger
-	if err := logger.Initialize(appConfigs.LogLevel); err != nil {
+	if err := logger.Initialize(config.Flags.LogLevel); err != nil {
 		panic(err)
 	}
 
 	var checksumService *services.Checksum
-	if appConfigs.SecretKey != "" {
-		checksumService = services.NewChecksum(appConfigs.SecretKey)
+	if config.Flags.SecretKey != "" {
+		checksumService = services.NewChecksum(config.Flags.SecretKey)
 	}
 
 	// Init DI Container
-	db := db.NewDB(appConfigs.DatabaseDSN)
+	db := db.NewDB(config.Flags.DatabaseDSN)
 	container := &config.Container{
 		DB:              db,
 		ChecksumService: checksumService,
 		Storage: storage.NewStorage(
 			&storage.Settings{
 				DB:              db,
-				DatabaseDSN:     appConfigs.DatabaseDSN,
-				FileStoragePath: appConfigs.FileStoragePath,
-				StoreInterval:   appConfigs.StoreInterval,
-				Restore:         appConfigs.Restore,
+				DatabaseDSN:     config.Flags.DatabaseDSN,
+				FileStoragePath: config.Flags.FileStoragePath,
+				StoreInterval:   config.Flags.StoreInterval,
+				Restore:         config.Flags.Restore,
 			},
 		),
 	}
 
 	// Starts the server
-	if err := server.NewServer(router.NewRouter(container)).Start(appConfigs.HostAddr); err != nil {
+	if err := server.NewServer(router.NewRouter(container)).Start(config.Flags.HostAddr); err != nil {
 		log.Fatal(err)
 	}
 

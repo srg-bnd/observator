@@ -84,46 +84,11 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 	}
 
 	res, err := request.Post(c.baseURL + "/updates")
-
 	if err != nil {
 		return err
 	}
 
 	// Decompress response
-	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
-		decompress(res.Body())
-	}
-
-	return nil
-}
-
-// [deprecated] Sends a metric to the server
-func (c *Client) SendMetric(metrics *models.Metrics) error {
-	data, err := json.Marshal(&metrics)
-	if err != nil {
-		return err
-	}
-
-	compressedData, err := compress(data)
-	if err != nil {
-		return err
-	}
-
-	c.client.
-		SetRetryCount(0).
-		SetRetryWaitTime(1 * time.Second).
-		SetRetryMaxWaitTime(1 * time.Second)
-
-	res, err := c.client.R().SetBody(compressedData).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
-		SetHeader("Content-Encoding", "gzip").
-		Post(c.baseURL + "/update")
-
-	if err != nil {
-		return err
-	}
-
 	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
 		decompress(res.Body())
 	}

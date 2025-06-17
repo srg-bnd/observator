@@ -1,5 +1,5 @@
 // Flags & envs
-package main
+package config
 
 import (
 	"flag"
@@ -26,7 +26,7 @@ const (
 )
 
 // Application configs
-type AppConfigs struct {
+type flags struct {
 	HostAddr string `env:"ADDRESS"`
 	LogLevel string `env:"LOG_LEVEL"`
 	// Storage
@@ -40,23 +40,23 @@ type AppConfigs struct {
 }
 
 // Global app configs
-var appConfigs = AppConfigs{}
+var Flags = flags{}
 
 // Parses flags from the console or envs
-func parseFlags() {
-	flag.StringVar(&appConfigs.HostAddr, "a", hostAddrDefault, hostAddrUsage)
-	flag.StringVar(&appConfigs.LogLevel, "l", logLevellDefault, logLevellUsage)
+func (s *flags) ParseFlags() {
+	flag.StringVar(&Flags.HostAddr, "a", hostAddrDefault, hostAddrUsage)
+	flag.StringVar(&Flags.LogLevel, "l", logLevellDefault, logLevellUsage)
 	// Storage
-	flag.IntVar(&appConfigs.StoreInterval, "i", storeIntervalDefault, storeIntervalUsage)
-	flag.StringVar(&appConfigs.FileStoragePath, "f", fileStoragePathDefault, fileStoragePathUsage)
-	flag.BoolVar(&appConfigs.Restore, "r", restoreDefault, restoreUsage)
+	flag.IntVar(&Flags.StoreInterval, "i", storeIntervalDefault, storeIntervalUsage)
+	flag.StringVar(&Flags.FileStoragePath, "f", fileStoragePathDefault, fileStoragePathUsage)
+	flag.BoolVar(&Flags.Restore, "r", restoreDefault, restoreUsage)
 	// Database
-	flag.StringVar(&appConfigs.DatabaseDSN, "d", "", databaseDSNUsage)
+	flag.StringVar(&Flags.DatabaseDSN, "d", "", databaseDSNUsage)
 	// Encryption
-	flag.StringVar(&appConfigs.SecretKey, "k", "", secretKeyUsage)
+	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
 	flag.Parse()
 
-	err := env.Parse(&appConfigs)
+	err := env.Parse(&Flags)
 	if err != nil {
 		panic(err)
 	}

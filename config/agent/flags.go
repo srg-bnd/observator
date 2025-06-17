@@ -1,5 +1,5 @@
 // Flags & envs
-package main
+package config
 
 import (
 	"flag"
@@ -21,7 +21,7 @@ const (
 )
 
 // Application configs
-type AppConfigs struct {
+type flags struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	ServerAddr     string `env:"ADDRESS"`
@@ -29,17 +29,17 @@ type AppConfigs struct {
 }
 
 // Global app configs
-var appConfigs = AppConfigs{}
+var Flags = flags{}
 
 // Parses flags & envs
-func parseFlags() {
-	flag.IntVar(&appConfigs.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
-	flag.IntVar(&appConfigs.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
-	flag.StringVar(&appConfigs.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
-	flag.StringVar(&appConfigs.SecretKey, "k", "", secretKeyUsage)
+func (s *flags) ParseFlags() {
+	flag.IntVar(&Flags.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
+	flag.IntVar(&Flags.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
+	flag.StringVar(&Flags.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
+	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
 	flag.Parse()
 
-	err := env.Parse(&appConfigs)
+	err := env.Parse(&Flags)
 	if err != nil {
 		panic(err)
 	}

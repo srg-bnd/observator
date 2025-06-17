@@ -33,7 +33,7 @@ func (c *Checksum) Verify(dataHash, data string) error {
 }
 
 func (c *Checksum) Sum(data string) (string, error) {
-	c.hmac.Reset()
+	defer c.hmac.Reset()
 
 	_, err := c.hmac.Write([]byte(data))
 	if err != nil {

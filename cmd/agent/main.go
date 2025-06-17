@@ -10,22 +10,24 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-func main() {
-	parseFlags()
+func init() {
+	config.Flags.ParseFlags()
+}
 
+func main() {
 	var checksumService *services.Checksum
-	if appConfigs.SecretKey != "" {
-		checksumService = services.NewChecksum(appConfigs.SecretKey)
+	if config.Flags.SecretKey != "" {
+		checksumService = services.NewChecksum(config.Flags.SecretKey)
 	}
 
 	// Init DI container
 	container := &config.Container{
 		ChecksumService: checksumService,
 		Storage:         storage.NewMemStorage(),
-		ServerAddr:      appConfigs.ServerAddr,
+		ServerAddr:      config.Flags.ServerAddr,
 	}
 
-	if err := agent.NewAgent(container).Start(appConfigs.PollInterval, appConfigs.ReportInterval); err != nil {
+	if err := agent.NewAgent(container).Start(config.Flags.PollInterval, config.Flags.ReportInterval); err != nil {
 		log.Fatal(err)
 	}
 }
