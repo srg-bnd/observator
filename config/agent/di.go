@@ -2,10 +2,12 @@
 package config
 
 import (
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
 type Container struct {
-	Storage    storage.Repositories
-	ServerAddr string
+	ChecksumService *services.Checksum
+	Storage         storage.Repositories
+	ServerAddr      string
 }

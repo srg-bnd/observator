@@ -22,6 +22,19 @@ func TestChecksum(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestSum(t *testing.T) {
+	randomString, err := secureRandomString(16)
+	assert.Nil(t, err)
+
+	data := "test data"
+	hmac := hmac.New(sha256.New, []byte(randomString))
+	hmac.Write([]byte(data))
+	sum, err := NewChecksum(randomString).Sum(data)
+	assert.Nil(t, err)
+
+	assert.Equal(t, string(hmac.Sum(nil)), sum)
+}
+
 // Helpers
 
 func secureRandomString(length int) (string, error) {

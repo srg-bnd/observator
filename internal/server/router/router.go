@@ -20,7 +20,7 @@ func NewRouter(container *config.Container) chi.Router {
 
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 
-	if container.EncryptionKey != "" {
+	if container.ChecksumService != nil {
 		r.Use(middleware.NewChecksum(container.ChecksumService).WithVerify)
 	}
 

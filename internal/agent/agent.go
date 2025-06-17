@@ -23,7 +23,7 @@ type Agent struct {
 func NewAgent(container *config.Container) *Agent {
 	return &Agent{
 		poller:   poller.NewPoller(container.Storage),
-		reporter: reporter.NewReporter(container.Storage, client.NewClient(container.ServerAddr)),
+		reporter: reporter.NewReporter(container.Storage, client.NewClient(container.ServerAddr, container.ChecksumService)),
 	}
 }
 

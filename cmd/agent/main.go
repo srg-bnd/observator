@@ -6,6 +6,7 @@ import (
 
 	config "github.com/srg-bnd/observator/config/agent"
 	"github.com/srg-bnd/observator/internal/agent"
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -14,8 +15,9 @@ func main() {
 
 	// Init DI container
 	container := &config.Container{
-		Storage:    storage.NewMemStorage(),
-		ServerAddr: appConfigs.ServerAddr,
+		ChecksumService: services.NewChecksum(appConfigs.SecretKey),
+		Storage:         storage.NewMemStorage(),
+		ServerAddr:      appConfigs.ServerAddr,
 	}
 
 	if err := agent.NewAgent(container).Start(appConfigs.PollInterval, appConfigs.ReportInterval); err != nil {

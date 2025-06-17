@@ -10,7 +10,7 @@ import (
 	"github.com/srg-bnd/observator/internal/server/db"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/router"
-	"github.com/srg-bnd/observator/internal/server/services"
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -22,11 +22,16 @@ func main() {
 		panic(err)
 	}
 
+	var checksumService *services.Checksum
+	if appConfigs.SecretKey != "" {
+		checksumService = services.NewChecksum(appConfigs.SecretKey)
+	}
+
 	// Init DI Container
 	db := db.NewDB(appConfigs.DatabaseDSN)
 	container := &config.Container{
 		DB:              db,
-		ChecksumService: services.NewChecksum(appConfigs.SecretKey),
+		ChecksumService: checksumService,
 		Storage: storage.NewStorage(
 			&storage.Settings{
 				DB:              db,

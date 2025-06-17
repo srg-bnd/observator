@@ -4,13 +4,12 @@ package config
 import (
 	"database/sql"
 
-	"github.com/srg-bnd/observator/internal/server/services"
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
 type Container struct {
-	EncryptionKey   string
+	ChecksumService *services.Checksum
 	DB              *sql.DB
 	Storage         storage.Repositories
-	ChecksumService *services.Checksum
 }

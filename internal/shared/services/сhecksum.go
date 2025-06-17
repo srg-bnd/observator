@@ -20,14 +20,23 @@ func NewChecksum(secretkey string) *Checksum {
 }
 
 func (c *Checksum) Verify(dataHash, data string) error {
-	_, err := c.hmac.Write([]byte(data))
+	sum, err := c.Sum(data)
 	if err != nil {
 		return err
 	}
 
-	if string(c.hmac.Sum(nil)) != dataHash {
+	if sum != dataHash {
 		return ErrVerify
 	}
 
 	return nil
+}
+
+func (c *Checksum) Sum(data string) (string, error) {
+	_, err := c.hmac.Write([]byte(data))
+	if err != nil {
+		return "", err
+	}
+
+	return string(c.hmac.Sum(nil)), nil
 }

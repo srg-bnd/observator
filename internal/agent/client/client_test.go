@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	client := NewClient(":8080")
+	client := NewClient(":8080", nil)
 	assert.IsType(t, client, &Client{})
 }
 

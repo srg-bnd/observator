@@ -6,26 +6,37 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/srg-bnd/observator/internal/agent/models"
+	"github.com/srg-bnd/observator/internal/server/logger"
+	"go.uber.org/zap"
 )
+
+var ErrBadHashSum = errors.New("bad hashSHA256")
+
+type ChecksumBehaviour interface {
+	Sum(string) (string, error)
+}
 
 // Client
 type Client struct {
-	client  *resty.Client
-	baseURL string
+	client          *resty.Client
+	baseURL         string
+	ChecksumService ChecksumBehaviour
 }
 
 // Returns a new client
-func NewClient(baseURL string) *Client {
+func NewClient(baseURL string, checksumService ChecksumBehaviour) *Client {
 	return &Client{
 		client: resty.New(),
 		// HACK
-		baseURL: "http://" + baseURL,
+		baseURL:         "http://" + baseURL,
+		ChecksumService: checksumService,
 	}
 }
 
@@ -56,11 +67,22 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 		SetRetryMaxWaitTime(5 * time.Second)
 
 	// Execute a request
-	res, err := c.client.R().SetBody(compressedData).
+	request := c.client.R().SetBody(compressedData).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip").
-		SetHeader("Content-Encoding", "gzip").
-		Post(c.baseURL + "/updates")
+		SetHeader("Content-Encoding", "gzip")
+
+	if c.ChecksumService != nil {
+		hashSHA256, err := c.ChecksumService.Sum(string(data))
+		if err != nil {
+			logger.Log.Warn("bad hashSHA256", zap.Error(ErrBadHashSum))
+			return err
+		} else {
+			request = request.SetHeader("HashSHA256", hashSHA256)
+		}
+	}
+
+	res, err := request.Post(c.baseURL + "/updates")
 
 	if err != nil {
 		return err
