@@ -9,3 +9,7 @@ func TestUse(t *testing.T) {
 func TestCheckMethodPostMiddleware(t *testing.T) {
 	t.Logf("TODO")
 }
+
+func TestGzipMiddleware(t *testing.T) {
+	t.Logf("TODO")
+}

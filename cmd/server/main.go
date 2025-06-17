@@ -24,7 +24,8 @@ func main() {
 	// Init DI Container
 	db := db.NewDB(appConfigs.DatabaseDSN)
 	container := &config.Container{
-		DB: db,
+		DB:            db,
+		EncryptionKey: appConfigs.EncryptionKey,
 		Storage: storage.NewStorage(
 			&storage.Settings{
 				DB:              db,

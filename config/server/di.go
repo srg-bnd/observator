@@ -8,6 +8,7 @@ import (
 )
 
 type Container struct {
-	Storage storage.Repositories
-	DB      *sql.DB
+	EncryptionKey string
+	DB            *sql.DB
+	Storage       storage.Repositories
 }
