@@ -4,10 +4,10 @@ package agent
 import (
 	"time"
 
+	config "github.com/srg-bnd/observator/config/agent"
 	"github.com/srg-bnd/observator/internal/agent/client"
 	"github.com/srg-bnd/observator/internal/agent/poller"
 	"github.com/srg-bnd/observator/internal/agent/reporter"
-	"github.com/srg-bnd/observator/internal/storage"
 )
 
 // Agent
@@ -17,10 +17,10 @@ type Agent struct {
 }
 
 // Returns a new agent
-func NewAgent(storage storage.Repositories, baseURL string) *Agent {
+func NewAgent(container *config.Container) *Agent {
 	return &Agent{
-		poller:   poller.NewPoller(storage),
-		reporter: reporter.NewReporter(storage, client.NewClient(baseURL)),
+		poller:   poller.NewPoller(container.Storage),
+		reporter: reporter.NewReporter(container.Storage, client.NewClient(container.ServerAddr)),
 	}
 }
 

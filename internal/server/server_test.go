@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	config "github.com/srg-bnd/observator/config/server"
 	"github.com/srg-bnd/observator/internal/server/router"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -25,6 +26,6 @@ func TestNewServer(t *testing.T) {
 	}
 	defer db.Close()
 
-	server := NewServer(router.NewRouter(storage.NewMemStorage(), db))
+	server := NewServer(router.NewRouter(&config.Container{DB: db, Storage: storage.NewMemStorage()}))
 	assert.IsType(t, server, &Server{})
 }

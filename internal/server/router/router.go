@@ -2,28 +2,27 @@
 package router
 
 import (
-	"database/sql"
+	config "github.com/srg-bnd/observator/config/server"
 
 	"github.com/go-chi/chi"
 	"github.com/srg-bnd/observator/internal/server/handlers"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/middleware"
-	"github.com/srg-bnd/observator/internal/storage"
 )
 
 // Returns a new router
-func NewRouter(storage storage.Repositories, db *sql.DB) chi.Router {
+func NewRouter(container *config.Container) chi.Router {
 	r := chi.NewRouter()
 
-	showHandler := handlers.NewShowHandler(storage)
-	updateHandler := handlers.NewUpdateHandler(storage)
-	batchUpdateHandler := handlers.NewBatchUpdateHandler(storage)
+	showHandler := handlers.NewShowHandler(container.Storage)
+	updateHandler := handlers.NewUpdateHandler(container.Storage)
+	batchUpdateHandler := handlers.NewBatchUpdateHandler(container.Storage)
 
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
-	r.Get("/ping", handlers.NewPingHandler(db).Handler)
+	r.Get("/ping", handlers.NewPingHandler(container.DB).Handler)
 
 	// Index
-	r.Get("/", handlers.NewIndexHandler(storage).Handler)
+	r.Get("/", handlers.NewIndexHandler(container.Storage).Handler)
 	// Show
 	r.Get("/value/{metricType}/{metricName}", showHandler.Handler)
 	r.Post("/value", showHandler.JSONHandler)
