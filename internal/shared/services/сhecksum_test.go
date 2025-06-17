@@ -29,9 +29,13 @@ func TestSum(t *testing.T) {
 	data := "test data"
 	hmac := hmac.New(sha256.New, []byte(randomString))
 	hmac.Write([]byte(data))
-	sum, err := NewChecksum(randomString).Sum(data)
+	service := NewChecksum(randomString)
+	sum, err := service.Sum(data)
 	assert.Nil(t, err)
+	assert.Equal(t, string(hmac.Sum(nil)), sum)
 
+	sum, err = service.Sum(data)
+	assert.Nil(t, err)
 	assert.Equal(t, string(hmac.Sum(nil)), sum)
 }
 
