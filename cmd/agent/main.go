@@ -13,9 +13,14 @@ import (
 func main() {
 	parseFlags()
 
+	var checksumService *services.Checksum
+	if appConfigs.SecretKey != "" {
+		checksumService = services.NewChecksum(appConfigs.SecretKey)
+	}
+
 	// Init DI container
 	container := &config.Container{
-		ChecksumService: services.NewChecksum(appConfigs.SecretKey),
+		ChecksumService: checksumService,
 		Storage:         storage.NewMemStorage(),
 		ServerAddr:      appConfigs.ServerAddr,
 	}
