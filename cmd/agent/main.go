@@ -15,10 +15,10 @@ func main() {
 	// Init DI container
 	container := &config.Container{
 		Storage:    storage.NewMemStorage(),
-		ServerAddr: appConfigs.serverAddr,
+		ServerAddr: appConfigs.ServerAddr,
 	}
 
-	if err := agent.NewAgent(container).Start(appConfigs.pollInterval, appConfigs.reportInterval); err != nil {
+	if err := agent.NewAgent(container).Start(appConfigs.PollInterval, appConfigs.ReportInterval); err != nil {
 		log.Fatal(err)
 	}
 }

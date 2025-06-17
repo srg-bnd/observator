@@ -3,43 +3,44 @@ package main
 
 import (
 	"flag"
-	"os"
-	"strconv"
+
+	"github.com/caarlos0/env/v11"
+)
+
+const (
+	pollIntervalUsage   = "pollInterval – frequency (seconds) of metric polling"
+	reportIntervalUsage = "reportInterval – frequency (seconds) of sending values to the server"
+	serverAddrUsage     = "address and port to run server"
+	encryptionKeyUsage  = "encryption key"
+)
+
+const (
+	pollIntervalDefault   = 2
+	reportIntervalDefault = 10
+	serverAddrDefault     = "localhost:8080"
 )
 
 // Application configs
 type AppConfigs struct {
-	pollInterval   int    // poll interval
-	reportInterval int    // report interval
-	serverAddr     string // server address
-	encryptionKey  string // encryption key
+	PollInterval   int    `env:"POLL_INTERVAL"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	ServerAddr     string `env:"ADDRESS"`
+	EncryptionKey  string `env:"KEY"`
 }
 
 // Global app configs
 var appConfigs = AppConfigs{}
 
-// Parses flags from the console or envs
+// Parses flags & envs
 func parseFlags() {
-	flag.IntVar(&appConfigs.pollInterval, "p", 2, "pollInterval – frequency (seconds) of metric polling")
-	flag.IntVar(&appConfigs.reportInterval, "r", 10, "reportInterval – frequency (seconds) of sending values to the server")
-	flag.StringVar(&appConfigs.serverAddr, "a", "localhost:8080", "address and port to run server")
-	flag.StringVar(&appConfigs.encryptionKey, "k", "", "encryption key")
-
+	flag.IntVar(&appConfigs.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
+	flag.IntVar(&appConfigs.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
+	flag.StringVar(&appConfigs.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
+	flag.StringVar(&appConfigs.EncryptionKey, "k", "", encryptionKeyUsage)
 	flag.Parse()
 
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		appConfigs.pollInterval, _ = strconv.Atoi(envPollInterval)
-	}
-
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		appConfigs.reportInterval, _ = strconv.Atoi(envReportInterval)
-	}
-
-	if envServerAddr := os.Getenv("ADDRESS"); envServerAddr != "" {
-		appConfigs.serverAddr = envServerAddr
-	}
-
-	if envEncryptionKey := os.Getenv("KEY"); envEncryptionKey != "" {
-		appConfigs.encryptionKey = envEncryptionKey
+	err := env.Parse(&appConfigs)
+	if err != nil {
+		panic(err)
 	}
 }

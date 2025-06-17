@@ -21,17 +21,17 @@ type (
 )
 
 type Settings struct {
-	DB                  *sql.DB
-	FlagDatabaseDSN     string
-	FlagFileStoragePath string
-	FlagStoreInterval   int
-	FlagRestore         bool
+	DB              *sql.DB
+	DatabaseDSN     string
+	FileStoragePath string
+	StoreInterval   int
+	Restore         bool
 }
 
 func NewStorage(settings *Settings) Repositories {
 	var repStorage Repositories
 
-	if settings.FlagDatabaseDSN != "" {
+	if settings.DatabaseDSN != "" {
 		// DB Storage
 		dbStorage := NewDBStorage(settings.DB)
 
@@ -42,7 +42,7 @@ func NewStorage(settings *Settings) Repositories {
 		repStorage = dbStorage
 	} else {
 		// File Storage
-		fileStorage := NewFileStorage(settings.FlagFileStoragePath, settings.FlagStoreInterval, settings.FlagRestore)
+		fileStorage := NewFileStorage(settings.FileStoragePath, settings.StoreInterval, settings.Restore)
 		if err := fileStorage.Load(); err != nil {
 			log.Fatal(err)
 		}

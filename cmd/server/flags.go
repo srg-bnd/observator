@@ -3,20 +3,37 @@ package main
 
 import (
 	"flag"
-	"os"
-	"strconv"
+
+	"github.com/caarlos0/env/v11"
+)
+
+const (
+	hostAddrUsage        = "address and port to run server"
+	logLevellUsage       = "log level"
+	storeIntervalUsage   = "store interval in seconds (zero for sync)"
+	fileStoragePathUsage = "file storage path"
+	restoreUsage         = "load data from storage"
+	databaseDSNUsage     = "DB connection address"
+)
+
+const (
+	hostAddrDefault        = ":8080"
+	logLevellDefault       = "info"
+	storeIntervalDefault   = 300
+	fileStoragePathDefault = "./temp.storage.db"
+	restoreDefault         = true
 )
 
 // Application configs
 type AppConfigs struct {
-	flagHostAddr string
-	flagLogLevel string
+	HostAddr string `env:"ADDRESS"`
+	LogLevel string `env:"LOG_LEVEL"`
 	// Storage
-	flagStoreInterval   int
-	flagFileStoragePath string
-	flagRestore         bool
+	StoreInterval   int    `env:"STORE_INTERVAL"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	Restore         bool   `env:"RESTORE"`
 	// Database
-	flagDatabaseDSN string // "host=%s user=%s password=%s dbname=%s sslmode=disable"
+	DatabaseDSN string `env:"DATABASE_DSN"` // format: "host=%s user=%s password=%s dbname=%s sslmode=disable"
 }
 
 // Global app configs
@@ -24,36 +41,18 @@ var appConfigs = AppConfigs{}
 
 // Parses flags from the console or envs
 func parseFlags() {
-	flag.StringVar(&appConfigs.flagHostAddr, "a", ":8080", "address and port to run server")
-	flag.StringVar(&appConfigs.flagLogLevel, "l", "info", "log level")
+	flag.StringVar(&appConfigs.HostAddr, "a", hostAddrDefault, hostAddrUsage)
+	flag.StringVar(&appConfigs.LogLevel, "l", logLevellDefault, logLevellUsage)
 	// Storage
-	flag.IntVar(&appConfigs.flagStoreInterval, "i", 300, "store interval in seconds (zero for sync)")
-	flag.StringVar(&appConfigs.flagFileStoragePath, "f", "./temp.storage.db", "file storage path")
-	flag.BoolVar(&appConfigs.flagRestore, "r", true, "load data from storage")
+	flag.IntVar(&appConfigs.StoreInterval, "i", storeIntervalDefault, storeIntervalUsage)
+	flag.StringVar(&appConfigs.FileStoragePath, "f", fileStoragePathDefault, fileStoragePathUsage)
+	flag.BoolVar(&appConfigs.Restore, "r", restoreDefault, restoreUsage)
 	// Database
-	flag.StringVar(&appConfigs.flagDatabaseDSN, "d", "", "DB connection address")
+	flag.StringVar(&appConfigs.DatabaseDSN, "d", "", databaseDSNUsage)
 	flag.Parse()
 
-	if envHostAddr := os.Getenv("ADDRESS"); envHostAddr != "" {
-		appConfigs.flagHostAddr = envHostAddr
-	}
-	if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
-		appConfigs.flagLogLevel = envLogLevel
-	}
-	// Storage
-	if envStoreInterval := os.Getenv("STORE_INTERVAL"); envStoreInterval != "" {
-		value, _ := strconv.ParseInt(envStoreInterval, 10, 0)
-		appConfigs.flagStoreInterval = int(value)
-	}
-	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
-		appConfigs.flagFileStoragePath = envFileStoragePath
-	}
-	if envRestore := os.Getenv("RESTORE"); envRestore != "" {
-		value, _ := strconv.ParseBool(envRestore)
-		appConfigs.flagRestore = value
-	}
-	// Database
-	if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
-		appConfigs.flagDatabaseDSN = envDatabaseDSN
+	err := env.Parse(&appConfigs)
+	if err != nil {
+		panic(err)
 	}
 }

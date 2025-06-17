@@ -17,27 +17,27 @@ func main() {
 	parseFlags()
 
 	// Init global logger
-	if err := logger.Initialize(appConfigs.flagLogLevel); err != nil {
+	if err := logger.Initialize(appConfigs.LogLevel); err != nil {
 		panic(err)
 	}
 
 	// Init DI Container
-	db := db.NewDB(appConfigs.flagDatabaseDSN)
+	db := db.NewDB(appConfigs.DatabaseDSN)
 	container := &config.Container{
 		DB: db,
 		Storage: storage.NewStorage(
 			&storage.Settings{
-				DB:                  db,
-				FlagDatabaseDSN:     appConfigs.flagDatabaseDSN,
-				FlagFileStoragePath: appConfigs.flagFileStoragePath,
-				FlagStoreInterval:   appConfigs.flagStoreInterval,
-				FlagRestore:         appConfigs.flagRestore,
+				DB:              db,
+				DatabaseDSN:     appConfigs.DatabaseDSN,
+				FileStoragePath: appConfigs.FileStoragePath,
+				StoreInterval:   appConfigs.StoreInterval,
+				Restore:         appConfigs.Restore,
 			},
 		),
 	}
 
 	// Starts the server
-	if err := server.NewServer(router.NewRouter(container)).Start(appConfigs.flagHostAddr); err != nil {
+	if err := server.NewServer(router.NewRouter(container)).Start(appConfigs.HostAddr); err != nil {
 		log.Fatal(err)
 	}
 
