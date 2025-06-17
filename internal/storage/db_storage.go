@@ -4,8 +4,11 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"embed"
 
 	"errors"
+
+	"github.com/pressly/goose/v3"
 )
 
 // Database storage
@@ -20,21 +23,16 @@ func NewDBStorage(db *sql.DB) *DBStorage {
 	}
 }
 
-var (
-	migrationsSQL = [2]string{
-		`CREATE TABLE IF NOT EXISTS gauge_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value DOUBLE PRECISION
-			);`,
-		`CREATE TABLE IF NOT EXISTS counter_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value BIGINT
-			);`,
-	}
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
 
+var (
 	// Errors
 	ErrUnknown = errors.New("unknown")
 )
 
 const (
+	// SQL queries
 	setGaugeSQL = `INSERT INTO gauge_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
@@ -162,11 +160,13 @@ func (dbStore *DBStorage) Close() {
 
 // Executes migrations
 func (dbStore *DBStorage) ExecMigrations() error {
-	for _, migration := range migrationsSQL {
-		_, err := dbStore.db.ExecContext(context.Background(), string(migration))
-		if err != nil {
-			return err
-		}
+	goose.SetBaseFS(embedMigrations)
+	if err := goose.SetDialect("postgres"); err != nil {
+		panic(err)
+	}
+
+	if err := goose.Up(dbStore.db, "migrations"); err != nil {
+		panic(err)
 	}
 
 	return nil
