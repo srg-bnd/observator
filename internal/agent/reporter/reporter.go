@@ -26,16 +26,20 @@ func NewReporter(storage storage.Repositories, client *client.Client) *Reporter 
 }
 
 // Starts the reporter
-func (r *Reporter) Start(reportInterval time.Duration) error {
+func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) error {
 	ticker := time.NewTicker(reportInterval)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			err := r.service.ValueSendingService(ctx, collector.TrackedMetrics)
+			if err != nil {
+				return err
+			}
 
-		err := r.service.ValueSendingService(context.Background(), collector.TrackedMetrics)
-		if err != nil {
-			return err
 		}
 	}
 }

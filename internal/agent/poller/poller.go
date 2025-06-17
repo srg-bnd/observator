@@ -27,21 +27,24 @@ func NewPoller(storage storage.Repositories) *Poller {
 }
 
 // Starts the poller
-func (r *Poller) Start(pollInterval time.Duration) error {
+func (r *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			metrics, err := r.collector.GetMetrics()
+			if err != nil {
+				return err
+			}
 
-		metrics, err := r.collector.GetMetrics()
-		if err != nil {
-			return err
-		}
-
-		err = r.services.MetricsUpdateService(context.Background(), metrics)
-		if err != nil {
-			return err
+			err = r.services.MetricsUpdateService(ctx, metrics)
+			if err != nil {
+				return err
+			}
 		}
 	}
 }

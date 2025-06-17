@@ -2,6 +2,9 @@
 package agent
 
 import (
+	"context"
+	"os"
+	"os/signal"
 	"time"
 
 	config "github.com/srg-bnd/observator/config/agent"
@@ -26,8 +29,11 @@ func NewAgent(container *config.Container) *Agent {
 
 // Starts processes poller and reporter
 func (a *Agent) Start(pollInterval int, reportInterval int) error {
-	go a.poller.Start(time.Duration(pollInterval) * time.Second)
-	a.reporter.Start(time.Duration(reportInterval) * time.Second)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	go a.poller.Start(ctx, time.Duration(pollInterval)*time.Second)
+	a.reporter.Start(ctx, time.Duration(reportInterval)*time.Second)
 
 	return nil
 }
