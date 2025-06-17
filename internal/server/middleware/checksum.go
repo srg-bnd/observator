@@ -37,7 +37,7 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 
 		defer r.Body.Close()
 
-		if r.Header.Get("HashSHA256") != "" {
+		if r.Header.Get("HashSHA256") != "" && len(body) > 0 {
 			if err := c.ChecksumService.Verify(r.Header.Get("HashSHA256"), string(body)); err != nil {
 				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 				return
