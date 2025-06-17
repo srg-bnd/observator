@@ -10,6 +10,7 @@ import (
 	"github.com/srg-bnd/observator/internal/server/db"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/router"
+	"github.com/srg-bnd/observator/internal/server/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
@@ -24,8 +25,8 @@ func main() {
 	// Init DI Container
 	db := db.NewDB(appConfigs.DatabaseDSN)
 	container := &config.Container{
-		DB:            db,
-		EncryptionKey: appConfigs.EncryptionKey,
+		DB:              db,
+		ChecksumService: services.NewChecksum(appConfigs.SecretKey),
 		Storage: storage.NewStorage(
 			&storage.Settings{
 				DB:              db,

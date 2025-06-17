@@ -1,21 +1,47 @@
 // Verify Checksum
 package middleware
 
-import "net/http"
+import (
+	"io"
+	"net/http"
 
-type Checksum struct {
-	EncryptionKey string
+	"github.com/srg-bnd/observator/internal/server/logger"
+	"go.uber.org/zap"
+)
+
+type ChecksumBehaviour interface {
+	Verify(string, string) error
 }
 
-func NewChecksum(encryptionKey string) *Checksum {
+type Checksum struct {
+	ChecksumService ChecksumBehaviour
+}
+
+const ErrReadBody = "couldn't read the body during verify"
+
+func NewChecksum(checksumService ChecksumBehaviour) *Checksum {
 	return &Checksum{
-		EncryptionKey: encryptionKey,
+		ChecksumService: checksumService,
 	}
 }
 
 func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO
+		body, err := io.ReadAll(r.Body)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			logger.Log.Info(ErrReadBody, zap.Error(err))
+			return
+		}
+
+		defer r.Body.Close()
+
+		if err := c.ChecksumService.Verify(r.Header.Get("HashSHA256"), string(body)); err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

@@ -11,7 +11,7 @@ const (
 	pollIntervalUsage   = "pollInterval – frequency (seconds) of metric polling"
 	reportIntervalUsage = "reportInterval – frequency (seconds) of sending values to the server"
 	serverAddrUsage     = "address and port to run server"
-	encryptionKeyUsage  = "encryption key"
+	secretKeyUsage      = "encryption key"
 )
 
 const (
@@ -25,7 +25,7 @@ type AppConfigs struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	ServerAddr     string `env:"ADDRESS"`
-	EncryptionKey  string `env:"KEY"`
+	SecretKey      string `env:"KEY"`
 }
 
 // Global app configs
@@ -36,7 +36,7 @@ func parseFlags() {
 	flag.IntVar(&appConfigs.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
 	flag.IntVar(&appConfigs.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
 	flag.StringVar(&appConfigs.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
-	flag.StringVar(&appConfigs.EncryptionKey, "k", "", encryptionKeyUsage)
+	flag.StringVar(&appConfigs.SecretKey, "k", "", secretKeyUsage)
 	flag.Parse()
 
 	err := env.Parse(&appConfigs)

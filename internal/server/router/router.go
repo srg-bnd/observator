@@ -21,7 +21,7 @@ func NewRouter(container *config.Container) chi.Router {
 	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
 
 	if container.EncryptionKey != "" {
-		r.Use(middleware.NewChecksum(container.EncryptionKey).WithVerify)
+		r.Use(middleware.NewChecksum(container.ChecksumService).WithVerify)
 	}
 
 	r.Get("/ping", handlers.NewPingHandler(container.DB).Handler)

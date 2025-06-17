@@ -14,7 +14,7 @@ const (
 	fileStoragePathUsage = "file storage path"
 	restoreUsage         = "load data from storage"
 	databaseDSNUsage     = "DB connection address"
-	encryptionKeyUsage   = "encryption key"
+	secretKeyUsage       = "encryption key"
 )
 
 const (
@@ -36,7 +36,7 @@ type AppConfigs struct {
 	// Database
 	DatabaseDSN string `env:"DATABASE_DSN"` // format: "host=%s user=%s password=%s dbname=%s sslmode=disable"
 	// Encryption
-	EncryptionKey string `env:"KEY"`
+	SecretKey string `env:"KEY"`
 }
 
 // Global app configs
@@ -53,7 +53,7 @@ func parseFlags() {
 	// Database
 	flag.StringVar(&appConfigs.DatabaseDSN, "d", "", databaseDSNUsage)
 	// Encryption
-	flag.StringVar(&appConfigs.EncryptionKey, "k", "", encryptionKeyUsage)
+	flag.StringVar(&appConfigs.SecretKey, "k", "", secretKeyUsage)
 	flag.Parse()
 
 	err := env.Parse(&appConfigs)
