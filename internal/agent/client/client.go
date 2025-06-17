@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -72,7 +73,7 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 		SetHeader("Accept-Encoding", "gzip").
 		SetHeader("Content-Encoding", "gzip")
 
-	if c.ChecksumService != nil {
+	if !reflect.ValueOf(c.ChecksumService).IsNil() {
 		hashSHA256, err := c.ChecksumService.Sum(string(data))
 		if err != nil {
 			logger.Log.Warn("bad hashSHA256", zap.Error(ErrBadHashSum))
