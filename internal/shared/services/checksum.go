@@ -3,7 +3,7 @@ package services
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"hash"
 )
@@ -41,5 +41,5 @@ func (c *Checksum) Sum(data string) (string, error) {
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(c.hmac.Sum(nil)), nil
+	return hex.EncodeToString(c.hmac.Sum(nil)), nil
 }
