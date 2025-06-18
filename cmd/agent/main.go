@@ -15,16 +15,14 @@ func init() {
 }
 
 func main() {
-	var checksumService *services.Checksum
-	if config.Flags.SecretKey != "" {
-		checksumService = services.NewChecksum(config.Flags.SecretKey)
-	}
-
 	// Init DI container
 	container := &config.Container{
-		ChecksumService: checksumService,
-		Storage:         storage.NewMemStorage(),
-		ServerAddr:      config.Flags.ServerAddr,
+		Storage:    storage.NewMemStorage(),
+		ServerAddr: config.Flags.ServerAddr,
+	}
+
+	if config.Flags.SecretKey != "" {
+		container.ChecksumService = services.NewChecksum(config.Flags.SecretKey)
 	}
 
 	if err := agent.NewAgent(container).Start(config.Flags.PollInterval, config.Flags.ReportInterval); err != nil {

@@ -28,7 +28,7 @@ type ChecksumBehaviour interface {
 type Client struct {
 	client          *resty.Client
 	baseURL         string
-	ChecksumService ChecksumBehaviour
+	checksumService ChecksumBehaviour
 }
 
 // Returns a new client
@@ -37,7 +37,7 @@ func NewClient(baseURL string, checksumService ChecksumBehaviour) *Client {
 		client: resty.New(),
 		// HACK
 		baseURL:         "http://" + baseURL,
-		ChecksumService: checksumService,
+		checksumService: checksumService,
 	}
 }
 
@@ -73,13 +73,13 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 		SetHeader("Accept-Encoding", "gzip").
 		SetHeader("Content-Encoding", "gzip")
 
-	if !reflect.ValueOf(c.ChecksumService).IsNil() {
-		hashSHA256, err := c.ChecksumService.Sum(string(data))
+	if reflect.ValueOf(c.checksumService).Kind() == reflect.Ptr && !reflect.ValueOf(c.checksumService).IsNil() {
+		hash, err := c.checksumService.Sum(string(data))
 		if err != nil {
-			logger.Log.Warn("bad hashSHA256", zap.Error(ErrBadHashSum))
+			logger.Log.Warn("bad hash (SHA256)", zap.Error(ErrBadHashSum))
 			return err
 		} else {
-			request = request.SetHeader("HashSHA256", hashSHA256)
+			request = request.SetHeader("HashSHA256", hash)
 		}
 	}
 

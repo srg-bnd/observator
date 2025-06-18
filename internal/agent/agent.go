@@ -22,8 +22,10 @@ type Agent struct {
 // Returns a new agent
 func NewAgent(container *config.Container) *Agent {
 	return &Agent{
-		poller:   poller.NewPoller(container.Storage),
-		reporter: reporter.NewReporter(container.Storage, client.NewClient(container.ServerAddr, container.ChecksumService)),
+		poller: poller.NewPoller(container.Storage),
+		reporter: reporter.NewReporter(
+			container.Storage,
+			client.NewClient(container.ServerAddr, container.ChecksumService)),
 	}
 }
 
