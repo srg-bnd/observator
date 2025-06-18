@@ -79,7 +79,7 @@ func (c *Client) SendMetrics(metrics []models.Metrics) error {
 			logger.Log.Warn("bad hash (SHA256)", zap.Error(ErrBadHashSum))
 			return err
 		} else {
-			request = request.SetHeader("HashSHA256", hash)
+			request = request.SetHeader("HashSHA256", string(hash))
 		}
 	}
 
