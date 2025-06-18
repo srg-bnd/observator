@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	hostAddrUsage        = "address and port to run server"
+	hostAddrUsage        = "base URL of target address"
 	logLevellUsage       = "log level"
 	storeIntervalUsage   = "store interval in seconds (zero for sync)"
-	fileStoragePathUsage = "file storage path"
+	fileStoragePathUsage = "path to persistent file storage"
 	restoreUsage         = "load data from storage"
-	databaseDSNUsage     = "DB connection address"
-	secretKeyUsage       = "encryption key"
+	databaseDSNUsage     = "connection string to database"
+	secretKeyUsage       = "sha256 key for hashing"
 )
 
 const (
