@@ -11,6 +11,6 @@ func TestNewClient(t *testing.T) {
 	assert.IsType(t, client, &Client{})
 }
 
-func TestSendMetric(t *testing.T) {
+func TestSendMetrics(t *testing.T) {
 	t.Logf("TODO")
 }

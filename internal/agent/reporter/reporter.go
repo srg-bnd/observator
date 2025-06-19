@@ -11,17 +11,21 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+type MetricService interface {
+	Send(context.Context, map[string][]string) error
+}
+
 // Reporter
 type Reporter struct {
-	storage storage.Repositories
-	service *services.Service
+	repository    storage.Repositories
+	metricService MetricService
 }
 
 // Returns a new reporter
-func NewReporter(storage storage.Repositories, client *client.Client) *Reporter {
+func NewReporter(repository storage.Repositories, client *client.Client) *Reporter {
 	return &Reporter{
-		storage: storage,
-		service: services.NewService(storage, client),
+		repository:    repository,
+		metricService: services.NewMetricService(repository, client),
 	}
 }
 
@@ -35,11 +39,9 @@ func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) erro
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			err := r.service.ValueSendingService(ctx, collector.TrackedMetrics)
-			if err != nil {
+			if err := r.metricService.Send(ctx, collector.TrackedMetrics); err != nil {
 				return err
 			}
-
 		}
 	}
 }

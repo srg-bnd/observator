@@ -2,6 +2,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -35,7 +36,7 @@ func NewClient(baseURL string, checksumService *services.Checksum) *Client {
 }
 
 // Sends batch of metrics
-func (c *Client) SendMetrics(metrics []models.Metrics) error {
+func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) error {
 	data, err := json.Marshal(&metrics)
 	if err != nil {
 		return err

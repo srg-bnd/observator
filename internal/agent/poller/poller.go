@@ -10,19 +10,24 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// Poller
+type Collector interface {
+	GetMetrics() (*collector.Metrics, error)
+}
+
+type MetricService interface {
+	Update(context.Context, *collector.Metrics) error
+}
+
 type Poller struct {
-	storage   storage.Repositories
-	collector *collector.Collector
-	services  *services.Service
+	collector     Collector
+	metricService MetricService
 }
 
 // Returns a new poller
-func NewPoller(storage storage.Repositories) *Poller {
+func NewPoller(repository storage.Repositories) *Poller {
 	return &Poller{
-		storage:   storage,
-		collector: collector.NewCollector(),
-		services:  services.NewService(storage, nil),
+		collector:     collector.NewCollector(),
+		metricService: services.NewMetricService(repository, nil),
 	}
 }
 
@@ -41,8 +46,7 @@ func (r *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 				return err
 			}
 
-			err = r.services.MetricsUpdateService(ctx, metrics)
-			if err != nil {
+			if err = r.metricService.Update(ctx, metrics); err != nil {
 				return err
 			}
 		}
