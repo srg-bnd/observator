@@ -40,8 +40,8 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 		}
 		r.Body.Close()
 
-		if expectedChecksum := r.Header.Get(hashKey); expectedChecksum != "" && len(body) > 0 {
-			if err := c.ChecksumService.Verify(expectedChecksum, string(body)); err != nil {
+		if len(body) > 0 {
+			if err := c.ChecksumService.Verify(r.Header.Get(hashKey), string(body)); err != nil {
 				logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 				return
@@ -51,13 +51,8 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 		r.Body = io.NopCloser(bytes.NewBuffer(body))
 		next.ServeHTTP(w, r)
 
-		responseBody, err := io.ReadAll(r.Response.Body)
-		if err != nil {
-			logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
-			return
-		}
-
-		checksum, err := c.ChecksumService.Sum(string(responseBody))
+		// TODO: uses response Body
+		checksum, err := c.ChecksumService.Sum(string("responseBody"))
 		if err != nil {
 			logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
 			return
