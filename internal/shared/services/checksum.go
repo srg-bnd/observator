@@ -5,10 +5,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"hash"
 )
 
-var ErrVerify = errors.New("unverified data")
+var (
+	ErrVerify      = errors.New("unverified data")
+	ErrInvalidData = errors.New("invalid data")
+)
 
 type Checksum struct {
 	hmac hash.Hash
@@ -23,7 +27,7 @@ func NewChecksum(secretkey string) *Checksum {
 func (c *Checksum) Verify(dataHash, data string) error {
 	sum, err := c.Sum(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", ErrVerify, err)
 	}
 
 	if sum != dataHash {
@@ -36,9 +40,8 @@ func (c *Checksum) Verify(dataHash, data string) error {
 func (c *Checksum) Sum(data string) (string, error) {
 	defer c.hmac.Reset()
 
-	_, err := c.hmac.Write([]byte(data))
-	if err != nil {
-		return "", err
+	if _, err := c.hmac.Write([]byte(data)); err != nil {
+		return "", fmt.Errorf("%w: %w", ErrInvalidData, err)
 	}
 
 	return hex.EncodeToString(c.hmac.Sum(nil)), nil

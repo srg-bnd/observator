@@ -1,53 +1,89 @@
 package services
 
 import (
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
+	"fmt"
 	"testing"
 
+	"github.com/srg-bnd/observator/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestChecksum(t *testing.T) {
-	randomString, err := secureRandomString(16)
+	randomString, err := helpers.SecureRandomString(16)
 	assert.Nil(t, err)
 
-	data := "test data"
-	hmac := hmac.New(sha256.New, []byte(randomString))
-	hmac.Write([]byte(data))
+	testCases := []struct {
+		data     string
+		dataHash string
+		err      error
+	}{
+		{
+			data:     "correctData",
+			dataHash: helpers.Sha256Hash("correctData", randomString),
+		},
+		{
+			data:     "",
+			dataHash: helpers.Sha256Hash("", randomString),
+		},
+		{
+			data:     "correctData",
+			dataHash: helpers.Sha256Hash("incorrectData", randomString),
+			err:      ErrVerify,
+		},
+	}
 
-	err = NewChecksum(randomString).Verify(hex.EncodeToString(hmac.Sum(nil)), data)
-	assert.Nil(t, err)
+	service := NewChecksum(randomString)
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprint("Test ", i+1, ": ", tc.data), func(t *testing.T) {
+			err := service.Verify(tc.dataHash, tc.data)
+
+			if tc.err != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.err)
+			}
+		})
+	}
 }
 
 func TestSum(t *testing.T) {
-	randomString, err := secureRandomString(16)
+	randomString, err := helpers.SecureRandomString(16)
 	assert.Nil(t, err)
 
-	data := "test data"
-	hmac := hmac.New(sha256.New, []byte(randomString))
-	hmac.Write([]byte(data))
-	service := NewChecksum(randomString)
-	sum, err := service.Sum(data)
-	assert.Nil(t, err)
-	assert.Equal(t, hex.EncodeToString(hmac.Sum(nil)), sum)
-
-	sum, err = service.Sum(data)
-	assert.Nil(t, err)
-	assert.Equal(t, hex.EncodeToString(hmac.Sum(nil)), sum)
-}
-
-// Helpers
-
-func secureRandomString(length int) (string, error) {
-	b := make([]byte, length)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
+	testCases := []struct {
+		input    string
+		expected string
+		fail     bool
+	}{
+		{
+			input:    "correctData",
+			expected: helpers.Sha256Hash("correctData", randomString),
+		},
+		// For testing resets
+		{
+			input:    "newCorrectData",
+			expected: helpers.Sha256Hash("newCorrectData", randomString),
+		},
+		{
+			input:    "oldData",
+			expected: helpers.Sha256Hash("newData", randomString),
+			fail:     true,
+		},
 	}
 
-	return base64.StdEncoding.EncodeToString(b), nil
+	service := NewChecksum(randomString)
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprint("Test ", i+1, ": ", tc.input), func(t *testing.T) {
+			result, err := service.Sum(tc.input)
+			assert.Nil(t, err)
+
+			if tc.fail {
+				assert.NotEqual(t, tc.expected, result)
+			} else {
+				assert.Equal(t, tc.expected, result)
+			}
+		})
+	}
 }
