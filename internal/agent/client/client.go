@@ -68,7 +68,7 @@ func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) 
 
 // Sets a checksum if need
 func (c *Client) withChecksum(request *resty.Request, data []byte) (*resty.Request, error) {
-	if c.checksumService != nil {
+	if c.checksumService == nil {
 		return request, nil
 	}
 
