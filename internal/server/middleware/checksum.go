@@ -42,7 +42,7 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 
 		if len(body) > 0 {
 			if err := c.ChecksumService.Verify(r.Header.Get(hashKey), string(body)); err != nil {
-				logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
+				logger.Log.Info(ErrChecksumVerify.Error(), zap.String("hashKey", r.Header.Get(hashKey)), zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 				return
 			}
