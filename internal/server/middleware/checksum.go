@@ -2,7 +2,7 @@
 package middleware
 
 import (
-	"io"
+	"bytes"
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/logger"
@@ -27,15 +27,16 @@ func NewChecksum(checksumService ChecksumBehaviour) *Checksum {
 
 func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
+		// body, err := io.ReadAll(r.Body)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	logger.Log.Info(ErrReadBody, zap.Error(err))
+		// 	return
+		// }
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			logger.Log.Info(ErrReadBody, zap.Error(err))
-			return
-		}
-
-		defer r.Body.Close()
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		body := buf.Bytes()
 
 		if r.Header.Get("HashSHA256") != "" && len(body) > 0 {
 			if err := c.ChecksumService.Verify(r.Header.Get("HashSHA256"), string(body)); err != nil {
