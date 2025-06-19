@@ -2,11 +2,7 @@
 package middleware
 
 import (
-	"bytes"
 	"net/http"
-
-	"github.com/srg-bnd/observator/internal/server/logger"
-	"go.uber.org/zap"
 )
 
 type ChecksumBehaviour interface {
@@ -34,19 +30,14 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 		// 	return
 		// }
 
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
-		body := buf.Bytes()
+		// if r.Header.Get("HashSHA256") != "" && len(body) > 0 {
+		// 	if err := c.ChecksumService.Verify(r.Header.Get("HashSHA256"), string(body)); err != nil {
+		// 		logger.Log.Info("checksum verify:", zap.Error(err))
 
-		if r.Header.Get("HashSHA256") != "" && len(body) > 0 {
-			if err := c.ChecksumService.Verify(r.Header.Get("HashSHA256"), string(body)); err != nil {
-				logger.Log.Info("checksum verify:", zap.Error(err))
-
-				// TODO: remove comments (need for tests)
-				// http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-				// return
-			}
-		}
+		// 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		// 		return
+		// 	}
+		// }
 
 		next.ServeHTTP(w, r)
 	})
