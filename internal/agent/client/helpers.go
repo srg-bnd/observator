@@ -11,7 +11,7 @@ import (
 )
 
 // Returns a new http client (resty)
-func newHttpClient(baseURL string) *resty.Client {
+func newHTTPClient(baseURL string) *resty.Client {
 	// Retriable errors
 	repetitionIntervals := [3]int{1, 3, 5}
 	currentRepetitionInterval := -1

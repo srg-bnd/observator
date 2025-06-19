@@ -30,7 +30,7 @@ type Client struct {
 // Returns a new client
 func NewClient(baseURL string, checksumService *services.Checksum) *Client {
 	return &Client{
-		httpClient:      newHttpClient(baseURL),
+		httpClient:      newHTTPClient(baseURL),
 		checksumService: checksumService,
 	}
 }
