@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/srg-bnd/observator/internal/server/models"
@@ -39,12 +38,12 @@ func (h *BatchUpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	_, err := buf.ReadFrom(r.Body)
 
 	if err != nil {
-		handleError(w, errors.New(invalidDataError))
+		handleError(w, errInvalidData)
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-		handleError(w, errors.New(invalidDataError))
+		handleError(w, errInvalidData)
 		return
 	}
 

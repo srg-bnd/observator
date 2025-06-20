@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	config "github.com/srg-bnd/observator/config/server"
 	"github.com/srg-bnd/observator/internal/server/models"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func TestNewRouter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			router := NewRouter(storage.NewDBStorage(db), db)
+			router := NewRouter(&config.Container{Storage: storage.NewDBStorage(db), DB: db})
 			if got := router; !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewRouter() = %v, want %v", got, tt.want)
 			}
@@ -53,7 +54,7 @@ func TestShowHandler(t *testing.T) {
 	defer db.Close()
 	storage := storage.NewMemStorage()
 
-	ts := httptest.NewServer(NewRouter(storage, db))
+	ts := httptest.NewServer(NewRouter(&config.Container{Storage: storage, DB: db}))
 	defer ts.Close()
 
 	storage.SetCounter(context.Background(), "correctKey", 1)
@@ -84,7 +85,7 @@ func TestShowHandlerForJSON(t *testing.T) {
 	defer db.Close()
 	storage := storage.NewMemStorage()
 
-	ts := httptest.NewServer(NewRouter(storage, db))
+	ts := httptest.NewServer(NewRouter(&config.Container{Storage: storage, DB: db}))
 	defer ts.Close()
 
 	storage.SetCounter(context.Background(), "correctKey", 1)
@@ -115,7 +116,7 @@ func TestUpdateHandler(t *testing.T) {
 	defer db.Close()
 	storage := storage.NewMemStorage()
 
-	ts := httptest.NewServer(NewRouter(storage, db))
+	ts := httptest.NewServer(NewRouter(&config.Container{Storage: storage, DB: db}))
 	defer ts.Close()
 
 	testCases := []struct {
@@ -141,7 +142,7 @@ func TestUpdateAsJSONHandler(t *testing.T) {
 	defer db.Close()
 	storage := storage.NewMemStorage()
 
-	ts := httptest.NewServer(NewRouter(storage, db))
+	ts := httptest.NewServer(NewRouter(&config.Container{Storage: storage, DB: db}))
 	defer ts.Close()
 
 	counter := int64(1)

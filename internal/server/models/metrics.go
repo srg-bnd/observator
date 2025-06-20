@@ -23,42 +23,6 @@ func NewMetrics() *Metrics {
 	return &Metrics{}
 }
 
-var TrackedMetrics = map[string][]string{
-	"counter": {
-		"PollCount",
-	},
-	"gauge": {
-		"Alloc",
-		"BuckHashSys",
-		"Frees",
-		"GCCPUFraction",
-		"GCSys",
-		"HeapAlloc",
-		"HeapIdle",
-		"HeapInuse",
-		"HeapObjects",
-		"HeapReleased",
-		"HeapSys",
-		"LastGC",
-		"Lookups",
-		"MCacheInuse",
-		"MCacheSys",
-		"MSpanInuse",
-		"MSpanSys",
-		"Mallocs",
-		"NextGC",
-		"NumForcedGC",
-		"NumGC",
-		"OtherSys",
-		"PauseTotalNs",
-		"StackInuse",
-		"StackSys",
-		"Sys",
-		"TotalAlloc",
-		"RandomValue",
-	},
-}
-
 func (m *Metrics) SetCounter(value int64) {
 	m.Delta = &value
 }
@@ -75,19 +39,20 @@ func (m *Metrics) GetGauge() float64 {
 	return *m.Value
 }
 
-func (m *Metrics) GetCounterAsString() string {
-	if m.Delta == nil {
-		return ""
-	}
-	return strconv.FormatInt(*m.Delta, 10)
-}
+func (m *Metrics) GetValueAsString() string {
+	if m.MType == CounterMType {
+		if m.Delta == nil {
+			return ""
+		}
+		return strconv.FormatInt(*m.Delta, 10)
 
-func (m *Metrics) GetGaugeAsString() string {
-	if m.Value == nil {
-		return ""
-	}
+	} else {
+		if m.Value == nil {
+			return ""
+		}
 
-	return strconv.FormatFloat(*m.Value, 'f', -1, 64)
+		return strconv.FormatFloat(*m.Value, 'f', -1, 64)
+	}
 }
 
 // Helpers

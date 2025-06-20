@@ -1,8 +1,10 @@
 package poller
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/srg-bnd/observator/internal/agent/collector"
 	"github.com/srg-bnd/observator/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -17,8 +19,8 @@ func TestStart(t *testing.T) {
 	t.Logf("TODO")
 }
 
-func TestTrackedMetrics(t *testing.T) {
-	trackedMetrics := collector.TrackedMetrics
+func TestTrackedRuntimeMetrics(t *testing.T) {
+	trackedMetrics := collector.TrackedRuntimeMetrics
 
 	for _, trackedMetric := range trackedMetrics["counter"] {
 		assert.Contains(t, []string{"PollCount"}, trackedMetric)
@@ -57,8 +59,42 @@ func TestTrackedMetrics(t *testing.T) {
 					"Sys",
 					"TotalAlloc",
 					"RandomValue",
+					"TotalAlloc",
+					"RandomValue",
 				},
 				trackedMetric)
 		})
 	}
+}
+
+func TestTrackedGopsutilMetrics(t *testing.T) {
+	trackedMetrics := collector.TrackedGopsutilMetrics
+
+	for _, trackedMetric := range trackedMetrics["counter"] {
+		assert.Contains(t, []string{"PollCount"}, trackedMetric)
+	}
+
+	countOfCPU, _ := cpu.Counts(true)
+	expectedMetrics := []string{
+		"TotalMemory",
+		"FreeMemory",
+		"CPUutilization1",
+	}
+	for numberCPU := 1; numberCPU < countOfCPU; numberCPU++ {
+		expectedMetrics = append(expectedMetrics, fmt.Sprint("CPUutilization", numberCPU+1))
+	}
+
+	for _, trackedMetric := range trackedMetrics["gauge"] {
+		t.Run(trackedMetric, func(t *testing.T) {
+			assert.Contains(t, expectedMetrics, trackedMetric)
+		})
+	}
+}
+
+func Test_pollRuntimeMetrics(t *testing.T) {
+	t.Logf("TODO")
+}
+
+func Test_pollGopsutilMetrics(t *testing.T) {
+	t.Logf("TODO")
 }

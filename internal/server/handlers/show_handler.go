@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -82,7 +81,7 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 			return metric, err
 		}
 	default:
-		return metric, errors.New(notFoundError)
+		return metric, errNotFound
 	}
 
 	return metric, nil
@@ -95,16 +94,11 @@ func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, f
 	if format == JSONFormat {
 		data, err := json.Marshal(metric)
 		if err != nil {
-			return errors.New(serverError)
+			return errServer
 		}
 		body = data
 	} else {
-		switch {
-		case metric.IsCounterMType():
-			body = []byte(metric.GetCounterAsString())
-		case metric.IsGaugeMType():
-			body = []byte(metric.GetGaugeAsString())
-		}
+		body = []byte(metric.GetValueAsString())
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -122,12 +116,12 @@ func (h *ShowHandler) buildMetric(r *http.Request, format string) (*models.Metri
 		_, err := buf.ReadFrom(r.Body)
 
 		if err != nil {
-			return &metric, errors.New(invalidDataError)
+			return &metric, errInvalidData
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
 		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
-			return &metric, errors.New(invalidDataError)
+			return &metric, errInvalidData
 		}
 	} else {
 		metric.MType = chi.URLParam(r, "metricType")
@@ -150,7 +144,7 @@ func (h *ShowHandler) setCounterValue(metric *models.Metrics, r *http.Request, f
 			}
 			metric.Delta = &newDelta
 		} else {
-			return errors.New(notFoundError)
+			return errNotFound
 		}
 	} else {
 		metric.Delta = &delta
@@ -172,7 +166,7 @@ func (h *ShowHandler) setGaugeValue(metric *models.Metrics, r *http.Request, for
 			}
 			metric.Value = &newValue
 		} else {
-			return errors.New(notFoundError)
+			return errNotFound
 		}
 	} else {
 		metric.Value = &value

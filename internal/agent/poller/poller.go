@@ -3,6 +3,9 @@ package poller
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
@@ -10,38 +13,69 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// Poller
+type Collector interface {
+	GetMetrics() (*collector.Metrics, error)
+}
+
+type MetricService interface {
+	Update(context.Context, *collector.Metrics) error
+}
+
 type Poller struct {
-	storage   storage.Repositories
-	collector *collector.Collector
-	services  *services.Service
+	runtimeCollector  Collector
+	gopsutilCollector Collector
+	metricService     MetricService
 }
 
 // Returns a new poller
-func NewPoller(storage storage.Repositories) *Poller {
+func NewPoller(repository storage.Repositories) *Poller {
 	return &Poller{
-		storage:   storage,
-		collector: collector.NewCollector(),
-		services:  services.NewService(storage, nil),
+		runtimeCollector:  collector.NewRuntimeCollector(),
+		gopsutilCollector: collector.NewGopsutilCollector(),
+		metricService:     services.NewMetricService(repository, nil),
 	}
 }
 
+var (
+	ErrGetRuntimeMetrics  = errors.New("get runtime metrics")
+	ErrGetGopsutilMetrics = errors.New("get gopsutil metrics")
+	ErrUpdateMetrics      = errors.New("update metrics")
+)
+
 // Starts the poller
-func (r *Poller) Start(pollInterval time.Duration) error {
+func (p *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
-
-		metrics, err := r.collector.GetMetrics()
-		if err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			go p.pollRuntimeMetrics(ctx)
+			go p.pollGopsutilMetrics(ctx)
 		}
+	}
+}
 
-		err = r.services.MetricsUpdateService(context.Background(), metrics)
-		if err != nil {
-			return err
-		}
+func (p *Poller) pollRuntimeMetrics(ctx context.Context) {
+	metrics, err := p.runtimeCollector.GetMetrics()
+	if err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
+	}
+
+	if err = p.metricService.Update(ctx, metrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrUpdateMetrics, err))
+	}
+}
+
+func (p *Poller) pollGopsutilMetrics(ctx context.Context) {
+	metrics, err := p.gopsutilCollector.GetMetrics()
+	if err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
+	}
+
+	if err = p.metricService.Update(ctx, metrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrUpdateMetrics, err))
 	}
 }

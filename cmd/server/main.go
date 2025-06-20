@@ -2,88 +2,54 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	config "github.com/srg-bnd/observator/config/server"
 
 	"github.com/srg-bnd/observator/internal/server"
+	"github.com/srg-bnd/observator/internal/server/db"
 	"github.com/srg-bnd/observator/internal/server/logger"
 	"github.com/srg-bnd/observator/internal/server/router"
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// Application
-type App struct {
-	storage storage.Repositories
-	server  *server.Server
-	db      *sql.DB
-}
-
-// Returns a new application
-func newApp() *App {
-	db := newDB()
-	storage := newStorage(db)
-
-	return &App{
-		storage: storage,
-		server:  server.NewServer(router.NewRouter(storage, db)),
-		db:      db,
-	}
-}
-
-// Returns a new storage
-func newStorage(db *sql.DB) storage.Repositories {
-	var repStorage storage.Repositories
-
-	if appConfigs.flagDatabaseDSN != "" {
-		// DB Storage
-		dbStorage := storage.NewDBStorage(db)
-
-		if err := dbStorage.ExecMigrations(); err != nil {
-			log.Fatal(err)
-		}
-
-		repStorage = dbStorage
-	} else {
-		// File Storage
-		fileStorage := storage.NewFileStorage(appConfigs.flagFileStoragePath, appConfigs.flagStoreInterval, appConfigs.flagRestore)
-		if err := fileStorage.Load(); err != nil {
-			log.Fatal(err)
-		}
-		fileStorage.Sync()
-		repStorage = fileStorage
-	}
-
-	return repStorage
-}
-
-// Returns a new connection to DB
-func newDB() *sql.DB {
-	db, err := sql.Open("pgx", appConfigs.flagDatabaseDSN)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db
+func init() {
+	config.Flags.ParseFlags()
 }
 
 func main() {
-	parseFlags()
-
-	// Init logger
-	if err := logger.Initialize(appConfigs.flagLogLevel); err != nil {
+	// Init global logger
+	if err := logger.Initialize(config.Flags.LogLevel); err != nil {
 		panic(err)
 	}
 
-	// Create application
-	app := newApp()
+	var checksumService *services.Checksum
+	if config.Flags.SecretKey != "" {
+		checksumService = services.NewChecksum(config.Flags.SecretKey)
+	}
 
-	// Starts the application
-	if err := app.server.Start(appConfigs.flagHostAddr); err != nil {
+	// Init DI Container
+	db := db.NewDB(config.Flags.DatabaseDSN)
+	container := &config.Container{
+		DB:              db,
+		ChecksumService: checksumService,
+		Storage: storage.NewStorage(
+			&storage.Settings{
+				DB:              db,
+				DatabaseDSN:     config.Flags.DatabaseDSN,
+				FileStoragePath: config.Flags.FileStoragePath,
+				StoreInterval:   config.Flags.StoreInterval,
+				Restore:         config.Flags.Restore,
+			},
+		),
+	}
+
+	// Starts the server
+	if err := server.NewServer(router.NewRouter(container)).Start(config.Flags.HostAddr); err != nil {
 		log.Fatal(err)
 	}
 
 	// Close connection to DB
-	defer app.db.Close()
+	defer db.Close()
 }

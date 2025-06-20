@@ -3,6 +3,9 @@ package reporter
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/client"
@@ -11,31 +14,65 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// Reporter
-type Reporter struct {
-	storage storage.Repositories
-	service *services.Service
+type MetricService interface {
+	Send(context.Context, map[string][]string) error
 }
 
+// Reporter
+type Reporter struct {
+	metricService MetricService
+	repository    storage.Repositories
+	workerPool    int
+}
+
+type Job struct {
+	trackedMetrics map[string][]string
+}
+
+var ErrReportMetrics = errors.New("report metrics")
+
 // Returns a new reporter
-func NewReporter(storage storage.Repositories, client *client.Client) *Reporter {
+func NewReporter(repository storage.Repositories, workerPool int, client *client.Client) *Reporter {
 	return &Reporter{
-		storage: storage,
-		service: services.NewService(storage, client),
+		repository:    repository,
+		workerPool:    workerPool,
+		metricService: services.NewMetricService(repository, client),
 	}
 }
 
 // Starts the reporter
-func (r *Reporter) Start(reportInterval time.Duration) error {
+func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) error {
 	ticker := time.NewTicker(reportInterval)
 	defer ticker.Stop()
 
-	for {
-		<-ticker.C
+	jobs := make(chan Job, r.workerPool)
+	defer close(jobs)
 
-		err := r.service.ValueSendingService(context.Background(), collector.TrackedMetrics)
-		if err != nil {
-			return err
+	// Runs workers
+	for range r.workerPool {
+		go r.worker(jobs, ctx)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			// Sets jobs
+			jobs <- Job{trackedMetrics: collector.TrackedRuntimeMetrics}
+			jobs <- Job{trackedMetrics: collector.TrackedGopsutilMetrics}
 		}
+	}
+}
+
+func (r *Reporter) reportMetrics(ctx context.Context, trackedMetrics map[string][]string) {
+	if err := r.metricService.Send(ctx, trackedMetrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrReportMetrics, err))
+	}
+}
+
+func (r *Reporter) worker(jobs <-chan Job, ctx context.Context) {
+	for job := range jobs {
+		r.reportMetrics(ctx, job.trackedMetrics)
 	}
 }
