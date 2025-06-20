@@ -14,8 +14,7 @@ import (
 )
 
 type Collector interface {
-	GetRuntimeMetrics() (*collector.Metrics, error)
-	GetGopsutilMetrics() (*collector.Metrics, error)
+	GetMetrics() (*collector.Metrics, error)
 }
 
 type MetricService interface {
@@ -23,15 +22,17 @@ type MetricService interface {
 }
 
 type Poller struct {
-	collector     Collector
-	metricService MetricService
+	runtimeCollector  Collector
+	gopsutilCollector Collector
+	metricService     MetricService
 }
 
 // Returns a new poller
 func NewPoller(repository storage.Repositories) *Poller {
 	return &Poller{
-		collector:     collector.NewCollector(),
-		metricService: services.NewMetricService(repository, nil),
+		runtimeCollector:  collector.NewRuntimeCollector(),
+		gopsutilCollector: collector.NewGopsutilCollector(),
+		metricService:     services.NewMetricService(repository, nil),
 	}
 }
 
@@ -58,7 +59,7 @@ func (p *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 }
 
 func (p *Poller) pollRuntimeMetrics(ctx context.Context) {
-	metrics, err := p.collector.GetRuntimeMetrics()
+	metrics, err := p.runtimeCollector.GetMetrics()
 	if err != nil {
 		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
 	}
@@ -66,11 +67,10 @@ func (p *Poller) pollRuntimeMetrics(ctx context.Context) {
 	if err = p.metricService.Update(ctx, metrics); err != nil {
 		log.Println(fmt.Errorf("%f%f", ErrUpdateMetrics, err))
 	}
-
 }
 
 func (p *Poller) pollGopsutilMetrics(ctx context.Context) {
-	metrics, err := p.collector.GetGopsutilMetrics()
+	metrics, err := p.gopsutilCollector.GetMetrics()
 	if err != nil {
 		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
 	}

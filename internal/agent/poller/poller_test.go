@@ -17,8 +17,8 @@ func TestStart(t *testing.T) {
 	t.Logf("TODO")
 }
 
-func TestTrackedMetrics(t *testing.T) {
-	trackedMetrics := collector.TrackedMetrics
+func TestTrackedRuntimeMetrics(t *testing.T) {
+	trackedMetrics := collector.TrackedRuntimeMetrics
 
 	for _, trackedMetric := range trackedMetrics["counter"] {
 		assert.Contains(t, []string{"PollCount"}, trackedMetric)
@@ -59,7 +59,24 @@ func TestTrackedMetrics(t *testing.T) {
 					"RandomValue",
 					"TotalAlloc",
 					"RandomValue",
+				},
+				trackedMetric)
+		})
+	}
+}
 
+func TestTrackedGopsutilMetrics(t *testing.T) {
+	trackedMetrics := collector.TrackedGopsutilMetrics
+
+	for _, trackedMetric := range trackedMetrics["counter"] {
+		assert.Contains(t, []string{"PollCount"}, trackedMetric)
+	}
+
+	for _, trackedMetric := range trackedMetrics["gauge"] {
+		t.Run(trackedMetric, func(t *testing.T) {
+			assert.Contains(
+				t,
+				[]string{
 					"TotalMemory",
 					"FreeMemory",
 				},

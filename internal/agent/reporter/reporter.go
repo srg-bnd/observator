@@ -3,6 +3,9 @@ package reporter
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/client"
@@ -20,6 +23,11 @@ type Reporter struct {
 	repository    storage.Repositories
 	metricService MetricService
 }
+
+var (
+	ErrReportGopsutilMetrics = errors.New("report gopsutil metrics")
+	ErrReportRuntimeMetrics  = errors.New("report runtime metrics")
+)
 
 // Returns a new reporter
 func NewReporter(repository storage.Repositories, client *client.Client) *Reporter {
@@ -39,9 +47,20 @@ func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) erro
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			if err := r.metricService.Send(ctx, collector.TrackedMetrics); err != nil {
-				return err
-			}
+			go r.reportRuntimeMetrics(ctx)
+			go r.reportGopsutilMetrics(ctx)
 		}
+	}
+}
+
+func (r *Reporter) reportGopsutilMetrics(ctx context.Context) {
+	if err := r.metricService.Send(ctx, collector.TrackedGopsutilMetrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrReportRuntimeMetrics, err))
+	}
+}
+
+func (r *Reporter) reportRuntimeMetrics(ctx context.Context) {
+	if err := r.metricService.Send(ctx, collector.TrackedRuntimeMetrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrReportRuntimeMetrics, err))
 	}
 }
