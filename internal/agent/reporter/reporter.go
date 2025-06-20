@@ -59,7 +59,7 @@ func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) erro
 			return nil
 		case <-ticker.C:
 			// Sets jobs
-			jobs <- Job{trackedMetrics: collector.TrackedGopsutilMetrics}
+			jobs <- Job{trackedMetrics: collector.TrackedRuntimeMetrics}
 			jobs <- Job{trackedMetrics: collector.TrackedGopsutilMetrics}
 		}
 	}
