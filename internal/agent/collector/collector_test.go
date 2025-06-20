@@ -47,6 +47,7 @@ func TestVars(t *testing.T) {
 		"gauge": {
 			"TotalMemory",
 			"FreeMemory",
+			"CPUutilization1",
 		},
 	})
 }

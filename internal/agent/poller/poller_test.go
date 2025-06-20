@@ -79,6 +79,7 @@ func TestTrackedGopsutilMetrics(t *testing.T) {
 				[]string{
 					"TotalMemory",
 					"FreeMemory",
+					"CPUutilization1",
 				},
 				trackedMetric)
 		})
