@@ -32,11 +32,11 @@ To startup the server, run in the terminal:
 ##### Envs & flags
 
 * `ADDRESS` | `-a` – address and port to run server. Default `:8080`
+* `DATABASE_DSN` | `-d` – DB connection address
 * `LOG_LEVEL` | `-l` – log level. Default `info`
-* `STORE_INTERVAL` | `-i` – store interval in seconds (zero for sync). Default `300`
 * `FILE_STORAGE_PATH` | `-f` – file storage path. Default `./temp.storage.db`
 * `RESTORE` | `-r` – load data from storage. Default `true`
-* `DATABASE_DSN` | `-d` – DB connection address
+* `STORE_INTERVAL` | `-i` – store interval in seconds (zero for sync). Default `300`
 
 #### Agent
 
@@ -54,10 +54,11 @@ To startup the agent, run in the terminal:
 
 ##### Envs & flags
 
-* `POLL_INTERVAL` | `-p` – frequency (seconds) of metric polling. Default `2`
-* `REPORT_INTERVAL` | `-r` – frequency (seconds) of sending values to the server. Default `10`
 * `ADDRESS` | `-a` – address and port to run agent. Default `localhost:8080`
 * `KEY` | `-k` – encryption key
+* `POLL_INTERVAL` | `-p` – frequency (seconds) of metric polling. Default `2`
+* `RATE_LIMIT` | `-l` – number of simultaneous outgoing requests to the server. Default `1`
+* `REPORT_INTERVAL` | `-r` – frequency (seconds) of sending values to the server. Default `10`
 
 ## Development
 
