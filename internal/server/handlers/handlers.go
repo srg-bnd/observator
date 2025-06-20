@@ -8,10 +8,10 @@ import (
 
 var (
 	// Errors
-	invalidDataError = errors.New("invalid data")
-	invalidNameError = errors.New("invalid name")
-	notFoundError    = errors.New("not found")
-	serverError      = errors.New("server error")
+	errInvalidData = errors.New("invalid data")
+	errInvalidName = errors.New("invalid name")
+	errNotFound    = errors.New("not found")
+	errServer      = errors.New("server error")
 )
 
 const (
@@ -36,9 +36,9 @@ func setContentType(w http.ResponseWriter, format string) {
 // Handle errors
 func handleError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, notFoundError):
+	case errors.Is(err, errNotFound):
 		w.WriteHeader(http.StatusNotFound)
-	case errors.Is(err, invalidDataError):
+	case errors.Is(err, errInvalidData):
 		w.WriteHeader(http.StatusBadRequest)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

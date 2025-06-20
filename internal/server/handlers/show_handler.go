@@ -81,7 +81,7 @@ func (h *ShowHandler) findMetric(r *http.Request, format string) (*models.Metric
 			return metric, err
 		}
 	default:
-		return metric, notFoundError
+		return metric, errNotFound
 	}
 
 	return metric, nil
@@ -94,7 +94,7 @@ func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, f
 	if format == JSONFormat {
 		data, err := json.Marshal(metric)
 		if err != nil {
-			return serverError
+			return errServer
 		}
 		body = data
 	} else {
@@ -116,12 +116,12 @@ func (h *ShowHandler) buildMetric(r *http.Request, format string) (*models.Metri
 		_, err := buf.ReadFrom(r.Body)
 
 		if err != nil {
-			return &metric, invalidDataError
+			return &metric, errInvalidData
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
 		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
-			return &metric, invalidDataError
+			return &metric, errInvalidData
 		}
 	} else {
 		metric.MType = chi.URLParam(r, "metricType")
@@ -144,7 +144,7 @@ func (h *ShowHandler) setCounterValue(metric *models.Metrics, r *http.Request, f
 			}
 			metric.Delta = &newDelta
 		} else {
-			return notFoundError
+			return errNotFound
 		}
 	} else {
 		metric.Delta = &delta
@@ -166,7 +166,7 @@ func (h *ShowHandler) setGaugeValue(metric *models.Metrics, r *http.Request, for
 			}
 			metric.Value = &newValue
 		} else {
-			return notFoundError
+			return errNotFound
 		}
 	} else {
 		metric.Value = &value

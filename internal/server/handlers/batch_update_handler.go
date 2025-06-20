@@ -38,12 +38,12 @@ func (h *BatchUpdateHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	_, err := buf.ReadFrom(r.Body)
 
 	if err != nil {
-		handleError(w, invalidDataError)
+		handleError(w, errInvalidData)
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-		handleError(w, invalidDataError)
+		handleError(w, errInvalidData)
 		return
 	}
 

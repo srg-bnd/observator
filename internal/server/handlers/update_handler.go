@@ -96,12 +96,12 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 		defer r.Body.Close()
 
 		if err != nil {
-			return &metric, invalidDataError
+			return &metric, errInvalidData
 		}
 
 		// TODO: use `json.NewDecoder(req.Body).Decode`
 		if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
-			return &metric, invalidDataError
+			return &metric, errInvalidData
 		}
 	} else {
 		metric.MType = chi.URLParam(r, "metricType")
@@ -110,12 +110,12 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 
 	// Check type
 	if !slices.Contains(models.MetricsMTypes, metric.MType) {
-		return &metric, invalidDataError
+		return &metric, errInvalidData
 	}
 
 	// Check name
 	if metric.ID == "" {
-		return &metric, invalidNameError
+		return &metric, errInvalidName
 	}
 
 	// Check value
@@ -126,14 +126,14 @@ func (h *UpdateHandler) parseAndValidateMetric(r *http.Request, format string) (
 		case models.CounterMType:
 			value, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
-				return nil, invalidDataError
+				return nil, errInvalidData
 			}
 
 			metric.SetCounter(value)
 		case models.GaugeMType:
 			value, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
-				return nil, invalidDataError
+				return nil, errInvalidData
 			}
 
 			metric.SetGauge(value)
@@ -172,7 +172,7 @@ func (h *UpdateHandler) represent(w http.ResponseWriter, metric *models.Metrics,
 
 		data, err := json.Marshal(metric)
 		if err != nil {
-			return serverError
+			return errServer
 		}
 		body = data
 
