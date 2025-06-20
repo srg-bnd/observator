@@ -158,6 +158,10 @@ func (dbStore *DBStorage) AllCounterMetrics(ctx context.Context) (map[string]int
 	if err != nil {
 		return nil, err
 	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 	defer rows.Close()
 
 	result := make(map[string]int64, 0)
@@ -184,6 +188,10 @@ func (dbStore *DBStorage) AllGaugeMetrics(ctx context.Context) (map[string]float
 	rows, err := dbStore.db.QueryContext(ctx, allGaugesSQL)
 	if err != nil {
 		return nil, err
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
 	}
 	defer rows.Close()
 
