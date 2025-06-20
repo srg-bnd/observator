@@ -7,7 +7,8 @@ import (
 )
 
 type Container struct {
-	ChecksumService *services.Checksum
-	Storage         storage.Repositories
-	ServerAddr      string
+	ChecksumService    *services.Checksum
+	Storage            storage.Repositories
+	ServerAddr         string
+	WorkerPoolReporter int
 }
