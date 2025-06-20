@@ -13,6 +13,8 @@ type Repositories interface {
 	SetCounter(context.Context, string, int64) error
 	GetCounter(context.Context, string) (int64, error)
 	SetBatchOfMetrics(context.Context, map[string]int64, map[string]float64) error
+	AllCounterMetrics(context.Context) (map[string]int64, error)
+	AllGaugeMetrics(context.Context) (map[string]float64, error)
 }
 
 type (

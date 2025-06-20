@@ -80,3 +80,27 @@ func (mStore *MemStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics 
 
 	return nil
 }
+
+func (mStore *MemStorage) AllCounterMetrics(ctx context.Context) (map[string]int64, error) {
+	mStore.mtx.RLock()
+	defer mStore.mtx.RUnlock()
+
+	counters := make(map[string]int64)
+	for id, delta := range mStore.counters {
+		counters[id] = int64(delta)
+	}
+
+	return counters, nil
+}
+
+func (mStore *MemStorage) AllGaugeMetrics(ctx context.Context) (map[string]float64, error) {
+	mStore.mtx.RLock()
+	defer mStore.mtx.RUnlock()
+
+	gauges := make(map[string]float64)
+	for id, value := range mStore.gauges {
+		gauges[id] = float64(value)
+	}
+
+	return gauges, nil
+}

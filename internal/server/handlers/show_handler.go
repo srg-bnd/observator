@@ -99,12 +99,7 @@ func (h *ShowHandler) represent(w http.ResponseWriter, metric *models.Metrics, f
 		}
 		body = data
 	} else {
-		switch {
-		case metric.IsCounterMType():
-			body = []byte(metric.GetCounterAsString())
-		case metric.IsGaugeMType():
-			body = []byte(metric.GetGaugeAsString())
-		}
+		body = []byte(metric.GetValueAsString())
 	}
 
 	w.WriteHeader(http.StatusOK)

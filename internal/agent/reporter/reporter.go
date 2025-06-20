@@ -24,9 +24,7 @@ type Reporter struct {
 	metricService MetricService
 }
 
-var (
-	ErrReportMetrics = errors.New("report metrics")
-)
+var ErrReportMetrics = errors.New("report metrics")
 
 // Returns a new reporter
 func NewReporter(repository storage.Repositories, client *client.Client) *Reporter {
@@ -52,8 +50,8 @@ func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) erro
 	}
 }
 
-func (r *Reporter) reportMetrics(ctx context.Context, trackedRuntimeMetrics map[string][]string) {
-	if err := r.metricService.Send(ctx, trackedRuntimeMetrics); err != nil {
+func (r *Reporter) reportMetrics(ctx context.Context, trackedMetrics map[string][]string) {
+	if err := r.metricService.Send(ctx, trackedMetrics); err != nil {
 		log.Println(fmt.Errorf("%f%f", ErrReportMetrics, err))
 	}
 }

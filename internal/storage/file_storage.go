@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type FileStorage struct {
 	storeInterval time.Duration // seconds
 	restore       bool
 	sync          bool
+	mtx           sync.RWMutex
 }
 
 // Returns a new file storage
@@ -49,6 +51,7 @@ func NewFileStorage(fileStoragePath string, storeInterval int, restore bool) *Fi
 		storeInterval: time.Duration(storeInterval) * time.Second,
 		sync:          storeInterval != 0,
 		restore:       restore,
+		mtx:           sync.RWMutex{},
 	}
 }
 
@@ -186,4 +189,28 @@ func (fStore *FileStorage) SaveAll() error {
 	}
 
 	return nil
+}
+
+func (fStore *FileStorage) AllCounterMetrics(ctx context.Context) (map[string]int64, error) {
+	fStore.mtx.RLock()
+	defer fStore.mtx.RUnlock()
+
+	counters := make(map[string]int64)
+	for id, delta := range fStore.counters {
+		counters[id] = int64(delta)
+	}
+
+	return counters, nil
+}
+
+func (fStore *FileStorage) AllGaugeMetrics(ctx context.Context) (map[string]float64, error) {
+	fStore.mtx.RLock()
+	defer fStore.mtx.RUnlock()
+
+	gauges := make(map[string]float64)
+	for id, value := range fStore.gauges {
+		gauges[id] = float64(value)
+	}
+
+	return gauges, nil
 }

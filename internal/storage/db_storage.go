@@ -33,16 +33,18 @@ var (
 
 const (
 	// SQL queries
-	setGaugeSQL = `INSERT INTO gauge_metrics (name, value)
-				VALUES ($1, $2)
-				ON CONFLICT (name)
-				DO UPDATE SET name = $1, value = $2;`
-	getGaugeSQL   = `SELECT value FROM gauge_metrics WHERE name = $1`
+	allCounterSQL = `SELECT name, value FROM counter_metrics`
 	setCounterSQL = `INSERT INTO counter_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
 				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`
-	getCounterSQL               = `SELECT value FROM counter_metrics WHERE name = $1`
+	getCounterSQL = `SELECT value FROM counter_metrics WHERE name = $1`
+	allGaugesSQL  = `SELECT name, value FROM gauge_metrics`
+	setGaugeSQL   = `INSERT INTO gauge_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = $2;`
+	getGaugeSQL                 = `SELECT value FROM gauge_metrics WHERE name = $1`
 	setBatchOfCounterMetricsSQL = `INSERT INTO counter_metrics (name, value)
 				VALUES ($1, $2)
 				ON CONFLICT (name)
@@ -149,6 +151,60 @@ func (dbStore *DBStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics 
 	tx.Commit()
 
 	return nil
+}
+
+func (dbStore *DBStorage) AllCounterMetrics(ctx context.Context) (map[string]int64, error) {
+	rows, err := dbStore.db.QueryContext(ctx, allCounterSQL)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]int64, 0)
+	for rows.Next() {
+		var name sql.NullString
+		var value sql.NullInt64
+
+		err := rows.Scan(&name, &value)
+		if err != nil {
+			return nil, err
+		}
+
+		if value.Valid && name.Valid {
+			result[name.String] = value.Int64
+		} else {
+			return nil, ErrUnknown
+		}
+	}
+
+	return result, nil
+}
+
+func (dbStore *DBStorage) AllGaugeMetrics(ctx context.Context) (map[string]float64, error) {
+	rows, err := dbStore.db.QueryContext(ctx, allGaugesSQL)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]float64, 0)
+	for rows.Next() {
+		var name sql.NullString
+		var value sql.NullFloat64
+
+		err := rows.Scan(&name, &value)
+		if err != nil {
+			return nil, err
+		}
+
+		if value.Valid && name.Valid {
+			result[name.String] = value.Float64
+		} else {
+			return nil, ErrUnknown
+		}
+	}
+
+	return result, nil
 }
 
 // Helpers
