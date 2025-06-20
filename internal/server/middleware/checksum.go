@@ -11,6 +11,25 @@ import (
 	"go.uber.org/zap"
 )
 
+// TODO: move checksumResponseWriter to personal package
+type checksumResponseWriter struct {
+	http.ResponseWriter
+	setChecksumFunc func(*checksumResponseWriter, []byte)
+	statusCode      int
+	buf             *bytes.Buffer
+}
+
+func (crw *checksumResponseWriter) Write(b []byte) (int, error) {
+	return crw.buf.Write(b)
+}
+
+func (crw *checksumResponseWriter) HackWrite() {
+	crw.setChecksumFunc(crw, crw.buf.Bytes())
+
+	crw.ResponseWriter.WriteHeader(crw.statusCode)
+	crw.ResponseWriter.Write(crw.buf.Bytes())
+}
+
 type ChecksumBehaviour interface {
 	Verify(string, string) error
 	Sum(string) (string, error)
@@ -48,16 +67,26 @@ func (c *Checksum) WithVerify(next http.Handler) http.Handler {
 			}
 		}
 
-		r.Body = io.NopCloser(bytes.NewBuffer(body))
-		next.ServeHTTP(w, r)
+		cw := checksumResponseWriter{
+			ResponseWriter: w,
+			buf:            &bytes.Buffer{},
+			setChecksumFunc: func(crw *checksumResponseWriter, b []byte) {
+				if len(b) == 0 {
+					return
+				}
 
-		// TODO: uses response Body
-		checksum, err := c.ChecksumService.Sum(string("responseBody"))
-		if err != nil {
-			logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
-			return
+				checksum, err := c.ChecksumService.Sum(string(b))
+				if err != nil {
+					logger.Log.Info(ErrChecksumVerify.Error(), zap.Error(err))
+					return
+				}
+
+				crw.Header().Set(hashKey, checksum)
+			},
 		}
 
-		w.Header().Set(hashKey, checksum)
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
+		next.ServeHTTP(&cw, r)
+		cw.HackWrite()
 	})
 }
