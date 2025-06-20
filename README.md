@@ -2,7 +2,64 @@
 
 Metrics collection and alerting service
 
-## For students
+[![go report card](https://goreportcard.com/badge/github.com/srg-bnd/observator?style=flat-square)](https://goreportcard.com/report/github.com/srg-bnd/observator)
+[![test status](https://github.com/srg-bnd/observator/workflows/mertricstest/badge.svg?branch=main "test status")](https://github.com/srg-bnd/observator/actions)
+
+## Getting Started
+
+Dependencies:
+
+* Go `1.23`
+* PostgreSQL
+* Linux or macOS platform
+
+### Startup
+
+#### Server
+
+To build a server, run in the terminal:
+
+```bash
+cd cmd/server && go run . # in the root directory of the project
+```
+
+To startup the server, run in the terminal:
+
+```bash
+./cmd/server/server # in the root directory of the project
+```
+
+##### Envs & flags
+
+* `ADDRESS` | `-a` – address and port to run server. Default `:8080`
+* `LOG_LEVEL` | `-l` – log level. Default `info`
+* `STORE_INTERVAL` | `-i` – store interval in seconds (zero for sync). Default `300`
+* `FILE_STORAGE_PATH` | `-f` – file storage path. Default `./temp.storage.db`
+* `RESTORE` | `-r` – load data from storage. Default `true`
+* `DATABASE_DSN` | `-d` – DB connection address
+
+#### Agent
+
+To build a agent, run in the terminal:
+
+```bash
+cd cmd/agent && go run . # in the root directory of the project
+```
+
+To startup the agent, run in the terminal:
+
+```bash
+./cmd/server/agent # in the root directory of the project
+```
+
+##### Envs & flags
+
+* `POLL_INTERVAL` | `-p` – frequency (seconds) of metric polling. Default `2`
+* `REPORT_INTERVAL` | `-r` – frequency (seconds) of sending values to the server. Default `10`
+* `ADDRESS` | `-a` – address and port to run agent. Default `localhost:8080`
+* `KEY` | `-k` – encryption key
+
+## Development
 
 ### Updating the template
 
