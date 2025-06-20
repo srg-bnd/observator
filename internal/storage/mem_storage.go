@@ -26,8 +26,9 @@ func NewMemStorage() *MemStorage {
 // Changes gauge by key
 func (mStore *MemStorage) SetGauge(ctx context.Context, key string, value float64) error {
 	mStore.mtx.Lock()
+	defer mStore.mtx.Unlock()
+
 	mStore.gauges[key] = gauge(value)
-	mStore.mtx.Unlock()
 
 	return nil
 }
@@ -35,13 +36,12 @@ func (mStore *MemStorage) SetGauge(ctx context.Context, key string, value float6
 // Returns gauge by key
 func (mStore *MemStorage) GetGauge(ctx context.Context, key string) (float64, error) {
 	mStore.mtx.RLock()
+	defer mStore.mtx.RUnlock()
 
 	value, ok := mStore.gauges[key]
 	if !ok {
 		return -1, errors.New("unknown")
 	}
-
-	mStore.mtx.RUnlock()
 
 	return float64(value), nil
 }
@@ -49,8 +49,9 @@ func (mStore *MemStorage) GetGauge(ctx context.Context, key string) (float64, er
 // Changes counter by key
 func (mStore *MemStorage) SetCounter(ctx context.Context, key string, value int64) error {
 	mStore.mtx.Lock()
+	defer mStore.mtx.Unlock()
+
 	mStore.counters[key] += counter(value)
-	mStore.mtx.Unlock()
 
 	return nil
 }
@@ -58,12 +59,12 @@ func (mStore *MemStorage) SetCounter(ctx context.Context, key string, value int6
 // Returns gauge by counter
 func (mStore *MemStorage) GetCounter(ctx context.Context, key string) (int64, error) {
 	mStore.mtx.RLock()
+	defer mStore.mtx.RUnlock()
+
 	value, ok := mStore.counters[key]
 	if !ok {
 		return -1, errors.New("unknown")
 	}
-	mStore.mtx.RUnlock()
-
 	return int64(value), nil
 }
 

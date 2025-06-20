@@ -4,18 +4,22 @@ package collector
 import (
 	"math/rand"
 	"runtime"
+
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 // Collector
 type Collector struct {
-	memStats  runtime.MemStats
+	memStats runtime.MemStats
+
 	pollCount int64
 }
 
 // Metrics
 type Metrics struct {
-	Counter map[string]int64
-	Gauge   map[string]float64
+	Counter    map[string]int64
+	Gauge      map[string]float64
+	GaugeMatch map[string]float64
 }
 
 // Tracked metrics
@@ -52,6 +56,9 @@ var TrackedMetrics = map[string][]string{
 		"Sys",
 		"TotalAlloc",
 		"RandomValue",
+
+		"TotalMemory",
+		"FreeMemory",
 	},
 }
 
@@ -62,8 +69,8 @@ func NewCollector() *Collector {
 	}
 }
 
-// Returns current metrics
-func (c *Collector) GetMetrics() (*Metrics, error) {
+// Returns current runtime metrics
+func (c *Collector) GetRuntimeMetrics() (*Metrics, error) {
 	runtime.ReadMemStats(&c.memStats)
 
 	return &Metrics{
@@ -101,6 +108,17 @@ func (c *Collector) GetMetrics() (*Metrics, error) {
 			"RandomValue":   c.randomValueGaugeMetric(),
 		},
 	}, nil
+}
+
+// Returns current gops (gopsutil) metrics
+func (c *Collector) GetGopsutilMetrics() (*Metrics, error) {
+	virtualMemoryStat, _ := mem.VirtualMemory()
+
+	return &Metrics{
+		Gauge: map[string]float64{
+			"TotalMemory": float64(virtualMemoryStat.Total),
+			"FreeMemory":  float64(virtualMemoryStat.Free),
+		}}, nil
 }
 
 // Counter Metrics

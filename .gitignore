@@ -27,3 +27,4 @@ vendor/
 # IDEs directories
 .idea
 .vscode
+cmd/sandbox/main.go

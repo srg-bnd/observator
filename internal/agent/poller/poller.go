@@ -3,6 +3,9 @@ package poller
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/srg-bnd/observator/internal/agent/collector"
@@ -11,7 +14,8 @@ import (
 )
 
 type Collector interface {
-	GetMetrics() (*collector.Metrics, error)
+	GetRuntimeMetrics() (*collector.Metrics, error)
+	GetGopsutilMetrics() (*collector.Metrics, error)
 }
 
 type MetricService interface {
@@ -31,8 +35,14 @@ func NewPoller(repository storage.Repositories) *Poller {
 	}
 }
 
+var (
+	ErrGetRuntimeMetrics  = errors.New("get runtime metrics")
+	ErrGetGopsutilMetrics = errors.New("get gopsutil metrics")
+	ErrUpdateMetrics      = errors.New("update metrics")
+)
+
 // Starts the poller
-func (r *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
+func (p *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
@@ -41,14 +51,31 @@ func (r *Poller) Start(ctx context.Context, pollInterval time.Duration) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			metrics, err := r.collector.GetMetrics()
-			if err != nil {
-				return err
-			}
-
-			if err = r.metricService.Update(ctx, metrics); err != nil {
-				return err
-			}
+			go p.pollRuntimeMetrics(ctx)
+			go p.pollGopsutilMetrics(ctx)
 		}
+	}
+}
+
+func (p *Poller) pollRuntimeMetrics(ctx context.Context) {
+	metrics, err := p.collector.GetRuntimeMetrics()
+	if err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
+	}
+
+	if err = p.metricService.Update(ctx, metrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrUpdateMetrics, err))
+	}
+
+}
+
+func (p *Poller) pollGopsutilMetrics(ctx context.Context) {
+	metrics, err := p.collector.GetGopsutilMetrics()
+	if err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrGetRuntimeMetrics, err))
+	}
+
+	if err = p.metricService.Update(ctx, metrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrUpdateMetrics, err))
 	}
 }

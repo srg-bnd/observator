@@ -41,6 +41,8 @@ func TestVars(t *testing.T) {
 			"Sys",
 			"TotalAlloc",
 			"RandomValue",
+			"TotalMemory",
+			"FreeMemory",
 		},
 	})
 }
@@ -50,7 +52,7 @@ func TestNewCollector(t *testing.T) {
 	assert.IsType(t, collector, &Collector{})
 }
 
-func TestGetMetrics(t *testing.T) {
+func TestGetRuntimeMetrics(t *testing.T) {
 	t.Logf("TODO")
 }
 

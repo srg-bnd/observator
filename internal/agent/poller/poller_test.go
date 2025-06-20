@@ -57,8 +57,21 @@ func TestTrackedMetrics(t *testing.T) {
 					"Sys",
 					"TotalAlloc",
 					"RandomValue",
+					"TotalAlloc",
+					"RandomValue",
+
+					"TotalMemory",
+					"FreeMemory",
 				},
 				trackedMetric)
 		})
 	}
+}
+
+func Test_pollRuntimeMetrics(t *testing.T) {
+	t.Logf("TODO")
+}
+
+func Test_pollGopsutilMetrics(t *testing.T) {
+	t.Logf("TODO")
 }
