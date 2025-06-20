@@ -25,8 +25,7 @@ type Reporter struct {
 }
 
 var (
-	ErrReportGopsutilMetrics = errors.New("report gopsutil metrics")
-	ErrReportRuntimeMetrics  = errors.New("report runtime metrics")
+	ErrReportMetrics = errors.New("report metrics")
 )
 
 // Returns a new reporter
@@ -47,20 +46,14 @@ func (r *Reporter) Start(ctx context.Context, reportInterval time.Duration) erro
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			go r.reportRuntimeMetrics(ctx)
-			go r.reportGopsutilMetrics(ctx)
+			go r.reportMetrics(ctx, collector.TrackedGopsutilMetrics)
+			go r.reportMetrics(ctx, collector.TrackedRuntimeMetrics)
 		}
 	}
 }
 
-func (r *Reporter) reportGopsutilMetrics(ctx context.Context) {
-	if err := r.metricService.Send(ctx, collector.TrackedGopsutilMetrics); err != nil {
-		log.Println(fmt.Errorf("%f%f", ErrReportRuntimeMetrics, err))
-	}
-}
-
-func (r *Reporter) reportRuntimeMetrics(ctx context.Context) {
-	if err := r.metricService.Send(ctx, collector.TrackedRuntimeMetrics); err != nil {
-		log.Println(fmt.Errorf("%f%f", ErrReportRuntimeMetrics, err))
+func (r *Reporter) reportMetrics(ctx context.Context, trackedRuntimeMetrics map[string][]string) {
+	if err := r.metricService.Send(ctx, trackedRuntimeMetrics); err != nil {
+		log.Println(fmt.Errorf("%f%f", ErrReportMetrics, err))
 	}
 }
