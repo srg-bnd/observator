@@ -1,7 +1,7 @@
 package collector
 
 import (
-	"strconv"
+	"fmt"
 
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/mem"
@@ -11,6 +11,7 @@ var TrackedGopsutilMetrics = map[string][]string{
 	"gauge": {
 		"TotalMemory",
 		"FreeMemory",
+		// NOTE: CPUutilization from 1 to ...
 		"CPUutilization1",
 	},
 }
@@ -20,6 +21,12 @@ type GopsutilCollector struct {
 
 // Returns new collector
 func NewGopsutilCollector() *GopsutilCollector {
+	// Dynamic metrics
+	countOfCPU, _ := cpu.Counts(true)
+	for numberCPU := 1; numberCPU < countOfCPU; numberCPU++ {
+		TrackedGopsutilMetrics["gauge"] = append(TrackedGopsutilMetrics["gauge"], fmt.Sprint("CPUutilization", numberCPU+1))
+	}
+
 	return &GopsutilCollector{}
 }
 
@@ -30,7 +37,7 @@ func (c *GopsutilCollector) GetMetrics() (*Metrics, error) {
 
 	gauges := make(map[string]float64, 0)
 	for numberCPU, percentage := range percentageOfCPU {
-		gauges["CPUutilization"+strconv.Itoa(numberCPU+1)] = percentage
+		gauges[fmt.Sprint("CPUutilization", numberCPU+1)] = percentage
 	}
 
 	gauges["TotalMemory"] = float64(virtualMemoryStat.Total)
