@@ -5,16 +5,17 @@ go 1.23.0
 toolchain go1.23.8
 
 require (
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-chi/chi v1.5.5
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/pressly/goose/v3 v3.24.3
+	github.com/shirou/gopsutil/v4 v4.25.5
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 )
 
 require (
-	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -26,7 +27,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.5 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
