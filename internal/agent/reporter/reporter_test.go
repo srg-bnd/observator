@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewPoller(t *testing.T) {
-	reporter := NewReporter(storage.NewMemStorage(), client.NewClient("", nil))
+	reporter := NewReporter(storage.NewMemStorage(), 1, client.NewClient("", nil))
 	assert.IsType(t, reporter, &Reporter{})
 }
 

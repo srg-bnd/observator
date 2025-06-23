@@ -9,13 +9,15 @@ import (
 
 const (
 	pollIntervalUsage   = "pollInterval – frequency (seconds) of metric polling"
+	rateLimitUsage      = "rate limit"
 	reportIntervalUsage = "reportInterval – frequency (seconds) of sending values to the server"
-	serverAddrUsage     = "address and port to run server"
 	secretKeyUsage      = "encryption key"
+	serverAddrUsage     = "address and port to run server"
 )
 
 const (
 	pollIntervalDefault   = 2
+	rateLimitDefault      = 1
 	reportIntervalDefault = 10
 	serverAddrDefault     = "localhost:8080"
 )
@@ -23,9 +25,10 @@ const (
 // Application configs
 type flags struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
+	RateLimit      int    `env:"RATE_LIMIT"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
-	ServerAddr     string `env:"ADDRESS"`
 	SecretKey      string `env:"KEY"`
+	ServerAddr     string `env:"ADDRESS"`
 }
 
 // Global app configs
@@ -34,9 +37,10 @@ var Flags = flags{}
 // Parses flags & envs
 func (s *flags) ParseFlags() {
 	flag.IntVar(&Flags.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
+	flag.IntVar(&Flags.RateLimit, "l", rateLimitDefault, rateLimitUsage)
 	flag.IntVar(&Flags.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
-	flag.StringVar(&Flags.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
 	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
+	flag.StringVar(&Flags.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
 	flag.Parse()
 
 	err := env.Parse(&Flags)

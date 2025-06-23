@@ -17,8 +17,9 @@ func init() {
 func main() {
 	// Init DI container
 	container := &config.Container{
-		Storage:    storage.NewMemStorage(),
-		ServerAddr: config.Flags.ServerAddr,
+		Storage:            storage.NewMemStorage(),
+		ServerAddr:         config.Flags.ServerAddr,
+		WorkerPoolReporter: config.Flags.RateLimit,
 	}
 
 	if config.Flags.SecretKey != "" {

@@ -25,6 +25,7 @@ func NewAgent(container *config.Container) *Agent {
 		poller: poller.NewPoller(container.Storage),
 		reporter: reporter.NewReporter(
 			container.Storage,
+			container.WorkerPoolReporter,
 			client.NewClient(container.ServerAddr, container.ChecksumService)),
 	}
 }

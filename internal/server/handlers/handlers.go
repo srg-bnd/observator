@@ -2,16 +2,19 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 )
 
-const (
+var (
 	// Errors
-	invalidDataError = "invalid data"
-	invalidNameError = "invalid name"
-	notFoundError    = "not found"
-	serverError      = "server error"
+	errInvalidData = errors.New("invalid data")
+	errInvalidName = errors.New("invalid name")
+	errNotFound    = errors.New("not found")
+	errServer      = errors.New("server error")
+)
 
+const (
 	// Formats
 	JSONFormat = "json"
 	HTMLFormat = "text/html"
@@ -32,12 +35,12 @@ func setContentType(w http.ResponseWriter, format string) {
 
 // Handle errors
 func handleError(w http.ResponseWriter, err error) {
-	switch err.Error() {
-	case serverError:
-		w.WriteHeader(http.StatusInternalServerError)
-	case invalidDataError:
-		w.WriteHeader(http.StatusBadRequest)
-	case notFoundError:
+	switch {
+	case errors.Is(err, errNotFound):
 		w.WriteHeader(http.StatusNotFound)
+	case errors.Is(err, errInvalidData):
+		w.WriteHeader(http.StatusBadRequest)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
