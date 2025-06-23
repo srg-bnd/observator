@@ -4,8 +4,11 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"embed"
 
 	"errors"
+
+	"github.com/pressly/goose/v3"
 )
 
 // Database storage
@@ -20,6 +23,36 @@ func NewDBStorage(db *sql.DB) *DBStorage {
 	}
 }
 
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
+
+var (
+	// Errors
+	ErrUnknown = errors.New("unknown")
+)
+
+const (
+	// SQL queries
+	setGaugeSQL = `INSERT INTO gauge_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = $2;`
+	getGaugeSQL   = `SELECT value FROM gauge_metrics WHERE name = $1`
+	setCounterSQL = `INSERT INTO counter_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`
+	getCounterSQL               = `SELECT value FROM counter_metrics WHERE name = $1`
+	setBatchOfCounterMetricsSQL = `INSERT INTO counter_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`
+	setBatchOfGaugeMetricsSQL = `INSERT INTO gauge_metrics (name, value)
+				VALUES ($1, $2)
+				ON CONFLICT (name)
+				DO UPDATE SET name = $1, value = $2;`
+)
+
 // Changes gauge by key
 func (dbStore *DBStorage) SetGauge(ctx context.Context, key string, value float64) error {
 	tx, err := dbStore.db.BeginTx(ctx, nil)
@@ -28,11 +61,7 @@ func (dbStore *DBStorage) SetGauge(ctx context.Context, key string, value float6
 	}
 	defer tx.Rollback()
 
-	tx.ExecContext(ctx,
-		`INSERT INTO gauge_metrics (name, value)
-				VALUES ($1, $2)
-				ON CONFLICT (name)
-				DO UPDATE SET name = $1, value = $2;`, key, value)
+	tx.ExecContext(ctx, setGaugeSQL, key, value)
 	tx.Commit()
 
 	return nil
@@ -40,8 +69,7 @@ func (dbStore *DBStorage) SetGauge(ctx context.Context, key string, value float6
 
 // Returns gauge by key
 func (dbStore *DBStorage) GetGauge(ctx context.Context, key string) (float64, error) {
-	row := dbStore.db.QueryRowContext(ctx,
-		"SELECT value FROM gauge_metrics WHERE name = $1", key)
+	row := dbStore.db.QueryRowContext(ctx, getGaugeSQL, key)
 
 	var value sql.NullFloat64
 	err := row.Scan(&value)
@@ -52,7 +80,7 @@ func (dbStore *DBStorage) GetGauge(ctx context.Context, key string) (float64, er
 	if value.Valid {
 		return value.Float64, nil
 	} else {
-		return -1, errors.New("unknown")
+		return -1, ErrUnknown
 	}
 }
 
@@ -64,11 +92,7 @@ func (dbStore *DBStorage) SetCounter(ctx context.Context, key string, value int6
 	}
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(ctx,
-		`INSERT INTO counter_metrics (name, value)
-				VALUES ($1, $2)
-				ON CONFLICT (name)
-				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`, key, value)
+	_, err = tx.ExecContext(ctx, setCounterSQL, key, value)
 
 	if err != nil {
 		tx.Rollback()
@@ -83,8 +107,7 @@ func (dbStore *DBStorage) SetCounter(ctx context.Context, key string, value int6
 // Returns gauge by counter
 func (dbStore *DBStorage) GetCounter(ctx context.Context, key string) (int64, error) {
 	// TODO: Add transaction
-	row := dbStore.db.QueryRowContext(ctx,
-		"SELECT value FROM counter_metrics WHERE name = $1", key)
+	row := dbStore.db.QueryRowContext(ctx, getCounterSQL, key)
 
 	var value sql.NullInt64
 	err := row.Scan(&value)
@@ -95,7 +118,7 @@ func (dbStore *DBStorage) GetCounter(ctx context.Context, key string) (int64, er
 	if value.Valid {
 		return value.Int64, nil
 	} else {
-		return -1, errors.New("unknown")
+		return -1, ErrUnknown
 	}
 }
 
@@ -108,11 +131,7 @@ func (dbStore *DBStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics 
 	defer tx.Rollback()
 
 	for key, value := range counterMetrics {
-		_, err := tx.ExecContext(ctx,
-			`INSERT INTO counter_metrics (name, value)
-				VALUES ($1, $2)
-				ON CONFLICT (name)
-				DO UPDATE SET name = $1, value = counter_metrics.value + $2;`, key, value)
+		_, err := tx.ExecContext(ctx, setBatchOfCounterMetricsSQL, key, value)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -120,11 +139,7 @@ func (dbStore *DBStorage) SetBatchOfMetrics(ctx context.Context, counterMetrics 
 	}
 
 	for key, value := range gaugeMetrics {
-		_, err := tx.ExecContext(ctx,
-			`INSERT INTO gauge_metrics (name, value)
-				VALUES ($1, $2)
-				ON CONFLICT (name)
-				DO UPDATE SET name = $1, value = $2;`, key, value)
+		_, err := tx.ExecContext(ctx, setBatchOfGaugeMetricsSQL, key, value)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -145,20 +160,13 @@ func (dbStore *DBStorage) Close() {
 
 // Executes migrations
 func (dbStore *DBStorage) ExecMigrations() error {
-	migrations := [2]string{
-		`CREATE TABLE IF NOT EXISTS gauge_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value DOUBLE PRECISION
-			);`,
-		`CREATE TABLE IF NOT EXISTS counter_metrics(
-				id SERIAL PRIMARY KEY, name VARCHAR NOT NULL UNIQUE, value BIGINT
-			);`,
+	goose.SetBaseFS(embedMigrations)
+	if err := goose.SetDialect("postgres"); err != nil {
+		panic(err)
 	}
 
-	for _, migration := range migrations {
-		_, err := dbStore.db.ExecContext(context.Background(), string(migration))
-		if err != nil {
-			return err
-		}
+	if err := goose.Up(dbStore.db, "migrations"); err != nil {
+		panic(err)
 	}
 
 	return nil

@@ -4,26 +4,28 @@ package main
 import (
 	"log"
 
+	config "github.com/srg-bnd/observator/config/agent"
 	"github.com/srg-bnd/observator/internal/agent"
+	"github.com/srg-bnd/observator/internal/shared/services"
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
-// Application
-type App struct {
-	agent *agent.Agent
-}
-
-// Returns a new application
-func NewApp() *App {
-	return &App{
-		agent: agent.NewAgent(storage.NewMemStorage(), appConfigs.serverAddr),
-	}
+func init() {
+	config.Flags.ParseFlags()
 }
 
 func main() {
-	parseFlags()
+	// Init DI container
+	container := &config.Container{
+		Storage:    storage.NewMemStorage(),
+		ServerAddr: config.Flags.ServerAddr,
+	}
 
-	if err := NewApp().agent.Start(appConfigs.pollInterval, appConfigs.reportInterval); err != nil {
+	if config.Flags.SecretKey != "" {
+		container.ChecksumService = services.NewChecksum(config.Flags.SecretKey)
+	}
+
+	if err := agent.NewAgent(container).Start(config.Flags.PollInterval, config.Flags.ReportInterval); err != nil {
 		log.Fatal(err)
 	}
 }

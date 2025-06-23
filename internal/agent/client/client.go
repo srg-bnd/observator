@@ -1,81 +1,42 @@
-// HTTP Client
+// Client for working with the server
 package client
 
 import (
-	"bytes"
-	"compress/flate"
-	"compress/gzip"
+	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"strings"
-	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/srg-bnd/observator/internal/agent/models"
+	"github.com/srg-bnd/observator/internal/server/logger"
+	"github.com/srg-bnd/observator/internal/shared/services"
+	"go.uber.org/zap"
 )
+
+var ErrBadHashSum = errors.New("bad hash")
+
+// TODO: uses `ChecksumBehaviour` instead of `services.Checksum`
+type ChecksumBehaviour interface {
+	Sum(string) (string, error)
+}
 
 // Client
 type Client struct {
-	client  *resty.Client
-	baseURL string
+	httpClient      *resty.Client
+	checksumService *services.Checksum
 }
 
 // Returns a new client
-func NewClient(baseURL string) *Client {
+func NewClient(baseURL string, checksumService *services.Checksum) *Client {
 	return &Client{
-		client: resty.New(),
-		// HACK
-		baseURL: "http://" + baseURL,
+		httpClient:      newHTTPClient(baseURL),
+		checksumService: checksumService,
 	}
 }
 
-// Sends batch of metrics to the server
-func (c *Client) SendMetrics(metrics []models.Metrics) error {
-	data, err := json.Marshal(&metrics)
-	if err != nil {
-		return err
-	}
-
-	// Compress data
-	compressedData, err := compress(data)
-	if err != nil {
-		return err
-	}
-
-	// Retriable errors
-	repetitionIntervals := [3]int{1, 3, 5}
-	currentRepetitionInterval := -1
-
-	// Init client
-	c.client.
-		SetRetryCount(len(repetitionIntervals)).
-		SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
-			currentRepetitionInterval++
-			return time.Duration(repetitionIntervals[currentRepetitionInterval]) * time.Second, nil
-		}).
-		SetRetryMaxWaitTime(5 * time.Second)
-
-	// Execute a request
-	res, err := c.client.R().SetBody(compressedData).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
-		SetHeader("Content-Encoding", "gzip").
-		Post(c.baseURL + "/updates")
-
-	if err != nil {
-		return err
-	}
-
-	// Decompress response
-	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
-		decompress(res.Body())
-	}
-
-	return nil
-}
-
-// [deprecated] Sends a metric to the server
-func (c *Client) SendMetric(metrics *models.Metrics) error {
+// Sends batch of metrics
+func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) error {
 	data, err := json.Marshal(&metrics)
 	if err != nil {
 		return err
@@ -86,59 +47,36 @@ func (c *Client) SendMetric(metrics *models.Metrics) error {
 		return err
 	}
 
-	c.client.
-		SetRetryCount(0).
-		SetRetryWaitTime(1 * time.Second).
-		SetRetryMaxWaitTime(1 * time.Second)
-
-	res, err := c.client.R().SetBody(compressedData).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
-		SetHeader("Content-Encoding", "gzip").
-		Post(c.baseURL + "/update")
-
+	request := c.httpClient.R().SetBody(compressedData)
+	request, err = c.withChecksum(request, data)
 	if err != nil {
 		return err
 	}
 
-	if strings.Contains(res.Header().Get("Accept-Encoding"), "gzip") {
-		decompress(res.Body())
+	response, err := request.Post("/updates")
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(response.Header().Get("Accept-Encoding"), "gzip") {
+		// TODO: use the results
+		decompress(response.Body())
 	}
 
 	return nil
 }
 
-// Helpers
-
-// Compress data
-func compress(data []byte) ([]byte, error) {
-	var b bytes.Buffer
-
-	w := gzip.NewWriter(&b)
-
-	_, err := w.Write(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+// Sets a checksum if need
+func (c *Client) withChecksum(request *resty.Request, data []byte) (*resty.Request, error) {
+	if c.checksumService == nil {
+		return request, nil
 	}
 
-	err = w.Close()
+	hash, err := c.checksumService.Sum(string(data))
 	if err != nil {
-		return nil, fmt.Errorf("failed compress data: %v", err)
+		logger.Log.Warn(ErrBadHashSum.Error(), zap.Error(ErrBadHashSum))
+		return request, nil
 	}
 
-	return b.Bytes(), nil
-}
-
-// Decompress data
-func decompress(compressedData []byte) ([]byte, error) {
-	r := flate.NewReader(bytes.NewReader(compressedData))
-	defer r.Close()
-
-	var b bytes.Buffer
-	_, err := b.ReadFrom(r)
-	if err != nil {
-		return nil, fmt.Errorf("failed decompress data: %v", err)
-	}
-
-	return b.Bytes(), nil
+	return request.SetHeader("HashSHA256", string(hash)), nil
 }
