@@ -14,14 +14,18 @@ import (
 func newHTTPClient(baseURL string) *resty.Client {
 	// Retriable errors
 	repetitionIntervals := [3]int{1, 3, 5}
-	currentRepetitionInterval := -1
 
 	return resty.New().
 		SetBaseURL("http://"+baseURL).
 		SetRetryCount(len(repetitionIntervals)).
 		SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
-			currentRepetitionInterval++
-			return time.Duration(repetitionIntervals[currentRepetitionInterval]) * time.Second, nil
+			var currentRepetitionInterval int
+
+			return func() (time.Duration, error) {
+				delay := time.Duration(repetitionIntervals[currentRepetitionInterval]) * time.Second
+				currentRepetitionInterval++
+				return delay, nil
+			}()
 		}).
 		SetRetryMaxWaitTime(5*time.Second).
 		SetHeader("Content-Type", "application/json").
