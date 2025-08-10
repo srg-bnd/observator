@@ -64,7 +64,7 @@ func TestCompression(t *testing.T) {
 	cw.Write(data)
 	cw.Close()
 
-	assert.NotEqual(t, string(w.Body.Bytes()), string(data))
+	assert.NotEqual(t, string(w.Body.String()), string(data))
 }
 
 func TestNoCompression(t *testing.T) {
