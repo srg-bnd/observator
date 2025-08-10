@@ -23,3 +23,4 @@ clean:
 
 lint:
 	go fmt ./...
+	goimports -w $(find . -name '*.go')
