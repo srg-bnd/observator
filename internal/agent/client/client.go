@@ -21,17 +21,24 @@ type ChecksumBehaviour interface {
 	Sum(string) (string, error)
 }
 
+type CompressorBehaviour interface {
+	Compress([]byte) ([]byte, error)
+	Decompress([]byte) ([]byte, error)
+}
+
 // Client
 type Client struct {
 	httpClient      *resty.Client
 	checksumService *services.Checksum
+	compressor      CompressorBehaviour
 }
 
 // Returns a new client
-func NewClient(baseURL string, checksumService *services.Checksum) *Client {
+func NewClient(baseURL string, checksumService *services.Checksum, compress CompressorBehaviour) *Client {
 	return &Client{
 		httpClient:      newHTTPClient(baseURL),
 		checksumService: checksumService,
+		compressor:      compress,
 	}
 }
 
@@ -42,7 +49,7 @@ func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) 
 		return err
 	}
 
-	compressedData, err := compress(data)
+	compressedData, err := c.compressor.Compress(data)
 	if err != nil {
 		return err
 	}
@@ -60,7 +67,7 @@ func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) 
 
 	if strings.Contains(response.Header().Get("Accept-Encoding"), "gzip") {
 		// TODO: use the results
-		decompress(response.Body())
+		c.compressor.Decompress(response.Body())
 	}
 
 	return nil

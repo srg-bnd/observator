@@ -11,6 +11,7 @@ import (
 	"github.com/srg-bnd/observator/internal/agent/client"
 	"github.com/srg-bnd/observator/internal/agent/poller"
 	"github.com/srg-bnd/observator/internal/agent/reporter"
+	"github.com/srg-bnd/observator/internal/shared/compressor"
 )
 
 // Agent
@@ -26,7 +27,11 @@ func NewAgent(container *config.Container) *Agent {
 		reporter: reporter.NewReporter(
 			container.Storage,
 			container.WorkerPoolReporter,
-			client.NewClient(container.ServerAddr, container.ChecksumService)),
+			client.NewClient(
+				container.ServerAddr,
+				container.ChecksumService,
+				compressor.NewCompressor(),
+			)),
 	}
 }
 
