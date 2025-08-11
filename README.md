@@ -3,7 +3,7 @@
 Metrics collection and alerting service
 
 [![go report card](https://goreportcard.com/badge/github.com/srg-bnd/observator?style=flat-square)](https://goreportcard.com/report/github.com/srg-bnd/observator)
-[![test status](https://github.com/srg-bnd/observator/workflows/mertricstest/badge.svg?branch=main "test status")](https://github.com/srg-bnd/observator/actions)
+[![test status](https://github.com/srg-bnd/observator/workflows/autotests/badge.svg?branch=main "test status")](https://github.com/srg-bnd/observator/actions)
 
 ## Getting Started
 
