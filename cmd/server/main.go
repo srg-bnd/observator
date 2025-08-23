@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	config "github.com/srg-bnd/observator/config/server"
@@ -14,7 +15,31 @@ import (
 	"github.com/srg-bnd/observator/internal/storage"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
+func buildInfo() {
+	strOrNA := func(str string) string {
+		if str == "" {
+			return "N/A"
+		}
+
+		return str
+	}
+
+	fmt.Printf(
+		"Build version: %s\nBuild date: %s\nBuild commit: %s\n",
+		strOrNA(buildVersion),
+		strOrNA(buildDate),
+		strOrNA(buildCommit),
+	)
+}
+
 func init() {
+	buildInfo()
 	config.Flags.ParseFlags()
 }
 

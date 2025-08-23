@@ -29,6 +29,12 @@ To startup the server, run in the terminal:
 ./cmd/server/server # in the root directory of the project
 ```
 
+Build and compilation flags (ldflags):
+
+- buildVersion: any string (example, `-X 'main.buildVersion=v0.0.1'`)
+- buildDate: `$(date -u '+%Y/%m/%d %H:%M:%S')'`
+- buildCommit: `$(git rev-parse --short HEAD || echo 'unknown')'`
+
 ##### Envs & flags
 
 * `ADDRESS` | `-a` – address and port to run server. Default `:8080`
@@ -51,6 +57,12 @@ To startup the agent, run in the terminal:
 ```bash
 ./cmd/server/agent # in the root directory of the project
 ```
+
+Build and compilation flags (-ldflags):
+
+- buildVersion: any string (example, `-X 'main.buildVersion=v0.0.1'`)
+- buildDate: `$(date -u '+%Y/%m/%d %H:%M:%S')'`
+- buildCommit: `$(git rev-parse --short HEAD || echo 'unknown')'`
 
 ##### Envs & flags
 
