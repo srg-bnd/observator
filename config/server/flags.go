@@ -15,6 +15,7 @@ const (
 	restoreUsage         = "load data from storage"
 	databaseDSNUsage     = "connection string to database"
 	secretKeyUsage       = "sha256 key for hashing"
+	cryptoKeyUsage       = "for asymmetric asymmetric"
 )
 
 const (
@@ -37,6 +38,7 @@ type flags struct {
 	DatabaseDSN string `env:"DATABASE_DSN"` // format: "host=%s user=%s password=%s dbname=%s sslmode=disable"
 	// Encryption
 	SecretKey string `env:"KEY"`
+	CryptoKey string `env:"CRYPTO_KEY"`
 }
 
 // Global app configs
@@ -54,6 +56,7 @@ func (s *flags) ParseFlags() {
 	flag.StringVar(&Flags.DatabaseDSN, "d", "", databaseDSNUsage)
 	// Encryption
 	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
+	flag.StringVar(&Flags.CryptoKey, "crypto-key", "", cryptoKeyUsage)
 	flag.Parse()
 
 	err := env.Parse(&Flags)

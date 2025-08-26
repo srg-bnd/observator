@@ -13,6 +13,7 @@ const (
 	reportIntervalUsage = "reportInterval – frequency (seconds) of sending values to the server"
 	secretKeyUsage      = "encryption key"
 	serverAddrUsage     = "address and port to run server"
+	cryptoKeyUsage      = "for asymmetric asymmetric"
 )
 
 const (
@@ -29,6 +30,7 @@ type flags struct {
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	SecretKey      string `env:"KEY"`
 	ServerAddr     string `env:"ADDRESS"`
+	CryptoKey      string `env:"CRYPTO_KEY"`
 }
 
 // Global app configs
@@ -41,6 +43,7 @@ func (s *flags) ParseFlags() {
 	flag.IntVar(&Flags.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)
 	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
 	flag.StringVar(&Flags.ServerAddr, "a", serverAddrDefault, serverAddrUsage)
+	flag.StringVar(&Flags.CryptoKey, "crypto-key", "", cryptoKeyUsage)
 	flag.Parse()
 
 	err := env.Parse(&Flags)
