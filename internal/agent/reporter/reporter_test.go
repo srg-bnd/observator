@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewPoller(t *testing.T) {
-	reporter := NewReporter(storage.NewMemStorage(), 1, client.NewClient("", nil, compressor.NewCompressor()))
+	reporter := NewReporter(storage.NewMemStorage(), 1, client.NewClient("", nil, compressor.NewCompressor(), nil))
 	assert.IsType(t, reporter, &Reporter{})
 }
 
