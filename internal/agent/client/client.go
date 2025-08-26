@@ -31,14 +31,16 @@ type Client struct {
 	httpClient      *resty.Client
 	checksumService *services.Checksum
 	compressor      CompressorBehaviour
+	publicKey       *services.PublicKey
 }
 
 // Returns a new client
-func NewClient(baseURL string, checksumService *services.Checksum, compress CompressorBehaviour) *Client {
+func NewClient(baseURL string, checksumService *services.Checksum, compress CompressorBehaviour, publicKey *services.PublicKey) *Client {
 	return &Client{
 		httpClient:      newHTTPClient(baseURL),
 		checksumService: checksumService,
 		compressor:      compress,
+		publicKey:       publicKey,
 	}
 }
 
@@ -47,6 +49,13 @@ func (c *Client) SendMetrics(context context.Context, metrics []models.Metrics) 
 	data, err := json.Marshal(&metrics)
 	if err != nil {
 		return err
+	}
+
+	if c.publicKey != nil {
+		data, err = c.publicKey.Encrypt(data)
+		if err != nil {
+			return err
+		}
 	}
 
 	compressedData, err := c.compressor.Compress(data)

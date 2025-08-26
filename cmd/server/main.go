@@ -54,11 +54,17 @@ func main() {
 		checksumService = services.NewChecksum(config.Flags.SecretKey)
 	}
 
+	var privateKey *services.PrivateKey
+	if config.Flags.CryptoKey != "" {
+		privateKey = services.NewPrivateKey(config.Flags.CryptoKey)
+	}
+
 	// Init DI Container
 	db := db.NewDB(config.Flags.DatabaseDSN)
 	container := &config.Container{
 		DB:              db,
 		ChecksumService: checksumService,
+		PrivateKey:      privateKey,
 		Storage: storage.NewStorage(
 			&storage.Settings{
 				DB:              db,
