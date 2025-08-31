@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	configUsage          = "config file"
 	hostAddrUsage        = "base URL of target address"
 	logLevellUsage       = "log level"
 	storeIntervalUsage   = "store interval in seconds (zero for sync)"
@@ -15,6 +16,7 @@ const (
 	restoreUsage         = "load data from storage"
 	databaseDSNUsage     = "connection string to database"
 	secretKeyUsage       = "sha256 key for hashing"
+	cryptoKeyUsage       = "for asymmetric asymmetric"
 )
 
 const (
@@ -27,6 +29,8 @@ const (
 
 // Application configs
 type flags struct {
+	ConfigFile string `env:"CONFIG"`
+
 	HostAddr string `env:"ADDRESS"`
 	LogLevel string `env:"LOG_LEVEL"`
 	// Storage
@@ -37,6 +41,7 @@ type flags struct {
 	DatabaseDSN string `env:"DATABASE_DSN"` // format: "host=%s user=%s password=%s dbname=%s sslmode=disable"
 	// Encryption
 	SecretKey string `env:"KEY"`
+	CryptoKey string `env:"CRYPTO_KEY"`
 }
 
 // Global app configs
@@ -44,6 +49,9 @@ var Flags = flags{}
 
 // Parses flags from the console or envs
 func (s *flags) ParseFlags() {
+	flag.StringVar(&Flags.ConfigFile, "c", "", configUsage)
+	// TODO: parse ConfigFile to flags struct
+
 	flag.StringVar(&Flags.HostAddr, "a", hostAddrDefault, hostAddrUsage)
 	flag.StringVar(&Flags.LogLevel, "l", logLevellDefault, logLevellUsage)
 	// Storage
@@ -54,6 +62,7 @@ func (s *flags) ParseFlags() {
 	flag.StringVar(&Flags.DatabaseDSN, "d", "", databaseDSNUsage)
 	// Encryption
 	flag.StringVar(&Flags.SecretKey, "k", "", secretKeyUsage)
+	flag.StringVar(&Flags.CryptoKey, "crypto-key", "", cryptoKeyUsage)
 	flag.Parse()
 
 	err := env.Parse(&Flags)
