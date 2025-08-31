@@ -7,6 +7,7 @@ import (
 )
 
 type Container struct {
+	PublicKey          *services.PublicKey
 	ChecksumService    *services.Checksum
 	Storage            storage.Repositories
 	ServerAddr         string
