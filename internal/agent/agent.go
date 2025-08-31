@@ -72,6 +72,7 @@ func NewAgent(container *config.Container) *Agent {
 				container.ServerAddr,
 				container.ChecksumService,
 				compressor.NewCompressor(),
+				container.PublicKey,
 			)),
 	}
 }
