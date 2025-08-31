@@ -40,8 +40,14 @@ func init() {
 }
 
 func main() {
+	var publicKey *services.PublicKey
+	if config.Flags.CryptoKey != "" {
+		publicKey = services.NewPublicKey(config.Flags.CryptoKey)
+	}
+
 	// Init DI container
 	container := &config.Container{
+		PublicKey:          publicKey,
 		Storage:            storage.NewMemStorage(),
 		ServerAddr:         config.Flags.ServerAddr,
 		WorkerPoolReporter: config.Flags.RateLimit,
@@ -54,4 +60,6 @@ func main() {
 	if err := agent.NewAgent(container).Start(config.Flags.PollInterval, config.Flags.ReportInterval); err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO: handle syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT
 }

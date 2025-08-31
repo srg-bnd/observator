@@ -18,10 +18,13 @@ func NewRouter(container *config.Container) chi.Router {
 	updateHandler := handlers.NewUpdateHandler(container.Storage)
 	batchUpdateHandler := handlers.NewBatchUpdateHandler(container.Storage)
 
-	r.Use(logger.RequestLogger, middleware.GzipMiddleware)
-
+	r.Use(logger.RequestLogger)
 	if container.ChecksumService != nil {
 		r.Use(middleware.NewChecksum(container.ChecksumService).WithVerify)
+	}
+	r.Use(middleware.GzipMiddleware)
+	if container.PrivateKey != nil {
+		r.Use(middleware.NewDecryptor(container.PrivateKey).WithDecrypt)
 	}
 
 	r.Get("/ping", handlers.NewPingHandler(container.DB).Handler)
