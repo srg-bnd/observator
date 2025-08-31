@@ -60,4 +60,6 @@ func main() {
 	if err := agent.NewAgent(container).Start(config.Flags.PollInterval, config.Flags.ReportInterval); err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO: handle syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT
 }

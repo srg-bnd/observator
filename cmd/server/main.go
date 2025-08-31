@@ -83,4 +83,6 @@ func main() {
 
 	// Close connection to DB
 	defer db.Close()
+
+	// TODO: handle syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT
 }
