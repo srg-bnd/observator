@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	configUsage         = "config file"
 	pollIntervalUsage   = "pollInterval – frequency (seconds) of metric polling"
 	rateLimitUsage      = "rate limit"
 	reportIntervalUsage = "reportInterval – frequency (seconds) of sending values to the server"
@@ -25,6 +26,8 @@ const (
 
 // Application configs
 type flags struct {
+	ConfigFile string `env:"CONFIG"`
+
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	RateLimit      int    `env:"RATE_LIMIT"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
@@ -38,6 +41,9 @@ var Flags = flags{}
 
 // Parses flags & envs
 func (s *flags) ParseFlags() {
+	flag.StringVar(&Flags.ConfigFile, "c", "", configUsage)
+	// TODO: parse ConfigFile to flags struct
+
 	flag.IntVar(&Flags.PollInterval, "p", pollIntervalDefault, pollIntervalUsage)
 	flag.IntVar(&Flags.RateLimit, "l", rateLimitDefault, rateLimitUsage)
 	flag.IntVar(&Flags.ReportInterval, "r", reportIntervalDefault, reportIntervalUsage)

@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	configUsage          = "config file"
 	hostAddrUsage        = "base URL of target address"
 	logLevellUsage       = "log level"
 	storeIntervalUsage   = "store interval in seconds (zero for sync)"
@@ -28,6 +29,8 @@ const (
 
 // Application configs
 type flags struct {
+	ConfigFile string `env:"CONFIG"`
+
 	HostAddr string `env:"ADDRESS"`
 	LogLevel string `env:"LOG_LEVEL"`
 	// Storage
@@ -46,6 +49,9 @@ var Flags = flags{}
 
 // Parses flags from the console or envs
 func (s *flags) ParseFlags() {
+	flag.StringVar(&Flags.ConfigFile, "c", "", configUsage)
+	// TODO: parse ConfigFile to flags struct
+
 	flag.StringVar(&Flags.HostAddr, "a", hostAddrDefault, hostAddrUsage)
 	flag.StringVar(&Flags.LogLevel, "l", logLevellDefault, logLevellUsage)
 	// Storage
